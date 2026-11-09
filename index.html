@@ -1,0 +1,1521 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mapa Nutrição Clínica</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: mobile-first ward tool — sticky day header, filter rail, bed cards; bottom tab bar (Mapa | Admissões); full-screen sheets for editing. */
+:root{
+  --bg:#f3f5f6; --surface:#ffffff; --surface-2:#eaeef0; --line:#d6dde1;
+  --ink:#14232b; --ink-2:#4f6069; --ink-3:#7c8b93;
+  --accent:#1d6f8c; --accent-ink:#ffffff; --accent-soft:#dcedf3;
+  --late:#b4232c; --late-soft:#fbe4e5; --today:#a85a00; --today-soft:#fdeed6;
+  --ok:#2b7a4b; --ok-soft:#dff1e6; --tn:#6b3fa0; --tn-soft:#ece3f7; --zero:#33424a; --zero-soft:#e1e6e9;
+  --f-ui:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e1519; --surface:#162127; --surface-2:#1d2a31; --line:#2a3a42;
+  --ink:#e6eef1; --ink-2:#a9b8bf; --ink-3:#7b8d95;
+  --accent:#5bb5d4; --accent-ink:#06222c; --accent-soft:#173543;
+  --late:#ff7b82; --late-soft:#3a1d21; --today:#f0ad4e; --today-soft:#3a2c14;
+  --ok:#6fcf97; --ok-soft:#173225; --tn:#c3a0f0; --tn-soft:#2c2340; --zero:#c4d0d6; --zero-soft:#26343b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1519; --surface:#162127; --surface-2:#1d2a31; --line:#2a3a42;
+  --ink:#e6eef1; --ink-2:#a9b8bf; --ink-3:#7b8d95;
+  --accent:#5bb5d4; --accent-ink:#06222c; --accent-soft:#173543;
+  --late:#ff7b82; --late-soft:#3a1d21; --today:#f0ad4e; --today-soft:#3a2c14;
+  --ok:#6fcf97; --ok-soft:#173225; --tn:#c3a0f0; --tn-soft:#2c2340; --zero:#c4d0d6; --zero-soft:#26343b; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-ui);font-size:15px;line-height:1.4;-webkit-text-size-adjust:100%;padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--surface)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:760px;margin:0 auto}
+.num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.top .wrap{padding-block:10px 10px;display:flex;flex-direction:column;gap:10px}
+.toprow{display:flex;align-items:center;gap:10px}
+.toprow h1{font-size:17px;font-weight:800;margin:0;letter-spacing:-.01em;flex:1;min-width:0}
+.toprow h1 small{display:block;font-size:12px;font-weight:500;color:var(--ink-2);letter-spacing:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 12px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn.sm{padding:5px 9px;font-size:13px;border-radius:8px}
+.btn:disabled{opacity:.5}
+.search{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 12px}
+.daysel{border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:8px 8px;max-width:150px}
+
+/* summary strip */
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sum button{border:0;border-radius:10px;padding:7px 4px;text-align:center;background:var(--surface-2);display:flex;flex-direction:column;gap:1px}
+.sum b{font-family:var(--f-num);font-size:18px;line-height:1.1}
+.sum span{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);font-weight:600}
+.sum .late{background:var(--late-soft)} .sum .late b{color:var(--late)}
+.sum .today{background:var(--today-soft)} .sum .today b{color:var(--today)}
+.sum .zero{background:var(--zero-soft)} .sum .pend{background:var(--accent-soft)} .sum .pend b{color:var(--accent)} .sum .tn{background:var(--tn-soft)} .sum .tn b{color:var(--tn)}
+.sum4{grid-template-columns:repeat(4,1fr)} .sum4 b{font-size:17px} .sum4 span{font-size:9.5px;letter-spacing:.03em} .sum .tot{background:var(--ink);} .sum .tot b,.sum .tot span{color:var(--bg)}
+.sum button[aria-pressed="true"]{outline:2px solid var(--ink);outline-offset:-2px}
+
+/* filters */
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:0 max(16px,env(safe-area-inset-left,0px)) 2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .c{font-family:var(--f-num);font-weight:500;opacity:.75;margin-left:4px}
+.sep{flex:none;width:1px;background:var(--line);margin:4px 2px}
+
+/* list */
+main .wrap{padding-block:12px;display:flex;flex-direction:column;gap:10px}
+.group-h{font-size:12px;text-transform:uppercase;letter-spacing:.07em;font-weight:700;color:var(--ink-2);margin:8px 2px 0;display:flex;gap:8px;align-items:center}
+.group-h::after{content:"";flex:1;height:1px;background:var(--line)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative}
+.card.late{border-color:color-mix(in srgb,var(--late) 55%,var(--line))}
+.card.today{border-color:color-mix(in srgb,var(--today) 55%,var(--line))}
+.card .stripe{position:absolute;left:0;top:0;bottom:0;width:4px}
+.card.adm{border-color:color-mix(in srgb,var(--accent) 60%,var(--line))} .card.adm .stripe{background:var(--accent)}
+.card.late .stripe{background:var(--late)} .card.today .stripe{background:var(--today)}
+.card-h{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;padding:12px 12px 10px 14px;width:100%;text-align:left;border:0;background:none}
+.bed{font-family:var(--f-num);font-weight:600;font-size:20px;line-height:1;padding-top:2px;min-width:44px}
+.bed small{display:block;font-size:11px;color:var(--ink-3);font-weight:500;margin-top:4px}
+.who{min-width:0}
+.who .n{font-weight:700;font-size:15px;line-height:1.25;overflow-wrap:anywhere}
+.who .m{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.dates{text-align:right;font-size:12px;color:var(--ink-2);display:flex;flex-direction:column;gap:2px;align-items:flex-end}
+.dates .d{font-family:var(--f-num);font-size:12px;padding:1px 6px;border-radius:6px;white-space:nowrap}
+.d.late{background:var(--late-soft);color:var(--late);font-weight:600}
+.d.today{background:var(--today-soft);color:var(--today);font-weight:600}
+.diet{grid-column:2 / 4;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.badges{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:5px}
+.b{font-size:11px;font-weight:700;letter-spacing:.03em;padding:2px 7px;border-radius:6px;background:var(--surface-2);color:var(--ink-2);text-transform:uppercase}
+.b.late{background:var(--late-soft);color:var(--late)} .b.today{background:var(--today-soft);color:var(--today)}
+.b.tn{background:var(--tn-soft);color:var(--tn)} .b.zero{background:var(--zero);color:var(--bg)}
+.b.risk{background:var(--late-soft);color:var(--late)} .b.ok{background:var(--ok-soft);color:var(--ok)}
+.b.lvl{background:var(--accent-soft);color:var(--accent)}
+.done-row{display:flex;gap:6px;padding:0 12px 12px 14px;flex-wrap:wrap}
+.tick{border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12.5px;font-weight:600;background:var(--surface);color:var(--ink-2);display:inline-flex;gap:5px;align-items:center}
+.tick[aria-pressed="true"]{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.tick .box{width:14px;height:14px;border-radius:4px;border:1.5px solid currentColor;display:inline-grid;place-items:center;font-size:10px;line-height:1}
+.note-peek{margin:0 12px 12px 14px;padding:8px 10px;border-radius:8px;background:var(--surface-2);font-size:13px;color:var(--ink-2);white-space:pre-wrap;overflow-wrap:anywhere}
+.empty-bed{display:flex;gap:10px;align-items:center;color:var(--ink-3);font-size:13px;padding:6px 4px}
+.empty{padding:28px 18px;text-align:center;color:var(--ink-2);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r);display:flex;flex-direction:column;gap:10px;align-items:center}
+.banner{font-size:13px;padding:10px 12px;border-radius:10px;background:var(--today-soft);color:var(--ink);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:25;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.nav .in{display:grid;grid-template-columns:repeat(3,1fr);max-width:760px;margin:0 auto}
+.nav button{border:0;background:none;padding:10px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;font-weight:600;color:var(--ink-3)}
+.nav button svg{width:24px;height:24px}
+.nav button[aria-current="page"]{color:var(--accent)}
+.nav .pill{font-family:var(--f-num);font-size:10px;background:var(--today);color:#fff;border-radius:999px;padding:0 5px;margin-left:3px}
+
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+.sheet-h{background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.sheet-h .wrap{display:flex;align-items:center;gap:8px;padding-block:10px}
+.sheet-h h2{flex:1;min-width:0;margin:0;font-size:16px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sheet-b{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(32px + env(safe-area-inset-bottom,0px))}
+.sheet-b .wrap{display:flex;flex-direction:column;gap:14px;padding-block:14px}
+.sec{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;flex-direction:column;gap:10px}
+.sec-h{display:flex;align-items:center;gap:8px}
+.sec-h h3{flex:1;margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-2);font-weight:800}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.f label .sp{flex:1}
+.f input,.f select,.f textarea{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:9px 10px;font-size:16px;min-width:0}
+.f textarea{min-height:64px;resize:vertical;line-height:1.4}
+.f .hint{font-size:11.5px;color:var(--ink-3)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cp{border:1px solid var(--line);background:var(--surface);border-radius:7px;padding:2px 8px;font-size:11.5px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+.cp.done{color:var(--ok);border-color:var(--ok)}
+.calc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.calc div{background:var(--surface-2);border-radius:9px;padding:7px 8px;min-width:0}
+.calc span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-2);font-weight:700}
+.calc b{font-family:var(--f-num);font-size:15px;overflow-wrap:anywhere}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.nrs-opt{display:flex;flex-direction:column;gap:6px}
+.nrs-opt button{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 10px;font-size:13px;display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
+.nrs-opt button b{font-family:var(--f-num)}
+.nrs-opt button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.score{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--surface-2)}
+.score b{font-family:var(--f-num);font-size:26px}
+.score.risk{background:var(--late-soft);color:var(--late)} .score.norisk{background:var(--ok-soft);color:var(--ok)}
+.photo{border:1.5px dashed var(--accent);background:var(--accent-soft);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.photo p{margin:0;font-size:13px;color:var(--ink-2)}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.thumbs img{width:56px;height:56px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.status{font-size:13px;color:var(--ink-2)}
+.status.err{color:var(--late)}
+.plantao{white-space:pre-wrap;font-size:13.5px;background:var(--surface-2);border-radius:9px;padding:9px 10px;max-height:240px;overflow-y:auto;overflow-wrap:anywhere}
+.ro{font-size:13.5px;overflow-wrap:anywhere;white-space:pre-wrap}
+.ro-l{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.outv{font-family:var(--f-num);font-size:15px;background:var(--surface-2);border-radius:9px;padding:9px 10px;min-height:40px;overflow-wrap:anywhere}
+.mini{font-size:12px;font-weight:600;color:var(--ink-2);min-width:52px}
+.adm-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.adm-info{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px;font-size:13px;color:var(--ink)}
+.adm-info span{display:inline-flex;gap:5px;align-items:baseline;font-family:var(--f-num);font-variant-numeric:tabular-nums}
+.adm-info em,.adm-dx em{font-style:normal;font-family:var(--f-ui);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3)}
+.adm-dx{margin-top:3px;font-size:13px;color:var(--ink);overflow-wrap:anywhere;display:flex;gap:6px;align-items:baseline}
+.adm-dx em{flex:none;min-width:74px}
+.adm-dx span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.adm-dx.alg span{color:var(--late);font-weight:600}
+.nd{font-style:normal;color:var(--ink-3)}
+.adm-act{display:flex;flex-direction:column;align-items:flex-end;gap:6px;padding:0 10px 10px}
+.adm-act .del-slot:empty{display:none}
+.adm-card{background:none;border:0;border-radius:var(--r);padding:12px 14px 6px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;text-align:left;width:100%}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:60;background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;font-size:13.5px;font-weight:600;max-width:calc(100% - 32px)}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;padding:8px 10px;background:var(--late-soft);border-radius:9px}
+
+.setor-h{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--toph,0px));z-index:5;background:var(--bg);padding:8px 2px 6px;font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--ink);display:flex;gap:8px;align-items:center}
+.setor-h span{font-weight:500;color:var(--ink-2);letter-spacing:0;font-size:12.5px}
+.vago{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:10px 12px 10px 14px;border:1px dashed var(--line);border-radius:var(--r);color:var(--ink-2);font-size:13px}
+.vago .bed{color:var(--ink-3)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.list-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.list-row:first-child{border-top:0}
+.list-row .t{font-weight:700}
+.list-row .s{font-size:12.5px;color:var(--ink-2)}
+.pend-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px}
+.pend-card .why{grid-column:2;font-size:12.5px;color:var(--ink-2);background:var(--surface-2);border-radius:8px;padding:6px 8px;overflow-wrap:anywhere}
+.pend-card .act{grid-column:1 / 3;display:flex;gap:6px;flex-wrap:wrap}
+.hero-up{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+.hero-up h2{margin:0;font-size:20px;font-weight:800;letter-spacing:-.01em}
+.hero-up p{margin:0;color:var(--ink-2);font-size:14px;max-width:46ch}
+.bedgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.bedgrid button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 4px;font-family:var(--f-num);font-weight:600;font-size:14px}
+.bedgrid button[aria-pressed="false"]{background:var(--surface-2);color:var(--ink-3);text-decoration:line-through}
+.photo-list{display:flex;flex-direction:column;gap:6px;width:100%}
+.photo-item{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;background:var(--surface);border-radius:9px;padding:6px}
+.photo-item img{width:48px;height:48px;object-fit:cover;border-radius:6px}
+.photo-item span{font-size:12.5px;color:var(--ink-2)}
+.photo-item b{display:block;font-size:13px;color:var(--ink)}
+.switch{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600}
+.switch input{width:20px;height:20px;accent-color:var(--accent)}
+@media (max-width:380px){.grid3{grid-template-columns:1fr 1fr}.calc{grid-template-columns:1fr 1fr}.sum b{font-size:16px}}
+@media (prefers-reduced-motion:no-preference){.card,.chip,.tick{transition:background-color .15s,border-color .15s}}
+</style>
+
+
+<div id="login" style="position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px">
+  <form id="login-f" class="sec" style="width:100%;max-width:340px" autocomplete="on">
+    <h2 style="margin:0;font-size:20px;font-weight:800">Mapa Nutrição Clínica</h2>
+    <p style="margin:0;color:var(--ink-2);font-size:13.5px">Entre para acessar seus leitos.</p>
+    <div class="f"><label for="lg-u">Login</label><input id="lg-u" name="username" autocomplete="username" autocapitalize="none" required></div>
+    <div class="f"><label for="lg-p">Senha</label><input id="lg-p" name="password" type="password" inputmode="numeric" autocomplete="current-password" required></div>
+    <label class="switch"><input type="checkbox" id="lg-k" checked> Manter conectado neste aparelho</label>
+    <div id="lg-e" class="status err" hidden>Login ou senha incorretos.</div>
+    <button class="btn primary" type="submit" style="justify-content:center">Entrar</button>
+  </form>
+</div>
+<script>
+// Simple access gate for the GitHub Pages copy. Data never leaves this browser (localStorage).
+(function(){
+  const H = 'c1788ea502f26ff44c791cac913ae24c17afd4d82726ac19736ccb915b702fbc', K = 'mapa-nutri-auth';
+  let ok; window.__auth = new Promise(r => ok = r);
+  const done = () => { document.getElementById('login').remove(); ok(); };
+  try { if (localStorage.getItem(K) === H || sessionStorage.getItem(K) === H) { document.addEventListener('DOMContentLoaded', done); if (document.readyState !== 'loading') done(); } } catch(e){}
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch(e){}
+  async function sha(t){ const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,'0')).join(''); }
+  document.getElementById('login-f').onsubmit = async e => {
+    e.preventDefault();
+    const h = await sha(document.getElementById('lg-u').value.trim().toLowerCase() + ':' + document.getElementById('lg-p').value.trim());
+    if (h !== H){ document.getElementById('lg-e').hidden = false; return; }
+    try { (document.getElementById('lg-k').checked ? localStorage : sessionStorage).setItem(K, H); } catch(e){}
+    done();
+  };
+})();
+</script>
+<script>
+// Dados do dia 09/11/2026 embutidos neste arquivo. Entram no navegador sem apagar nada mais novo que você já tenha salvo.
+(function(){
+  const SEED = {"adm-r321692": {"altura": "", "criadoEm": 1794222226260, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Nilcea de Souza Quitete", "fotos": [], "id": "r321692", "idade": "61 anos 1 meses", "kcalKg": 25, "leito": "113", "mapId": "1A-113@2026-11-09", "nome": "CARLA QUITETE XAVIER", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321692", "setor": "1A", "updatedAt": 1794222226527, "via": "oral"}, "adm-r321673": {"altura": "155", "ccHora": "13:00", "criadoEm": 1794222226259, "dataAval": "2026-11-09", "dia": "2026-11-09", "diagnostico": "Plástica de face e palpebras", "dietaLibCons": "Zero", "dietaLibHora": "08:22", "doMapa": true, "filiacao": "Cadastro Ficticio", "fotos": [{"resumo": "Peso, altura, queixa principal, restrições, jejum desde 24H, sem comorbidades marcadas", "thumb": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAASABIAAD/4QBMRXhpZgAATU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAA6ABAAMAAAABAAEAAKACAAQAAAABAAAAYKADAAQAAAABAAAAYAAAAAD/7QA4UGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAA4QklNBCUAAAAAABDUHYzZjwCyBOmACZjs+EJ+/8AAEQgAYABgAwEiAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAABAgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNCscEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//EALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoWJDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp6vLz9PX29/j5+v/bAEMABAQEBAQEBgQEBgkGBgYJDAkJCQkMDwwMDAwMDxIPDw8PDw8SEhISEhISEhUVFRUVFRkZGRkZHBwcHBwcHBwcHP/bAEMBBAUFBwcHDAcHDB0UEBQdHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHR0dHf/dAAQABv/aAAwDAQACEQMRAD8A7e0M8pDQCGSHJRnEh3blJVhgKRkEYxnrxWvBb3jRN5yxxSHONpLjpxnIQnvwMccA55rnINIa8WZEsrXy/NdmE1oHBYYIPMqh2fJIccdm2sCK6FLO/jP2PzLYRzrJtUWUhRWyWJcrLtwSehwSe9dkUJk8MM4mzJJG8e0YAjZTuH3juLnjrgYyPX1sC0vBlvMj5bKkqcbdvc7+u7nPHHGM81EbC4sJpZ/KhljmOfLtrQ+Y8m7eCz+Zt6lvmYKAxBLdzrW8Frb2rTi3FtuHnSII137sc5WMsXfjHBbPGM1VhXIYreZF/eMhUKAdq7Tu5zj5m9vxyc88TtaM5UMvzsQePQc9KvIsrjekDO24oCQMYzgcLu4OM+uOuDxUFnoen2dy12LOGOdw43LEqsd5LNyAO5yfU/nVKIrlOa2QTspyBjnIIyMc9fyphtWAAKlgMEY+8PzrUTTbTzjNawrESZAxEflktu+c8hSdzDO7+L72TxS+VFHgGTDZ7YJ9vX6UNWJuY5tnCggEDpgj16dOtRGJkPA5HcA/4D+da6KCiSpGV3gFQyktgjPKsBt9w2CKilt8EKoz6YAxj2HT9ahopMxni3liSCRnn/65rJuUCqfTGeOldHJCduR0PH3iwz36gfr0rntWkjsrSa8nyIoEaRwBkhVGSQO5wKhxLTP/0O08LvPqmi2t/PHds11b/vgJPL3FlVS6jeCn3SV2bRzuxk5rsYbVg+94rthvMiK8mAuV24BV+V5JAbOD06KB534N1/QhpenPPfiydLOEEXEoRT5fmQkqrNtPzK3QZxtLdFx6FH4g8NXSbDrFtIGGNy3KoePQRsG/ln1ruiSzditSJXnJkG9VG2RjtUKONoYkDuSepzyTgAVbfTLazHmQSzsWBX95cvJwcD/lozDtwe3PTJqzb6npJwsd5CA4P3ZFLc+hU8H/AIFTjqNiPle8iDEf89QP1y2KtIksPbqp2yCQZ/iwPp+tYtxJEZXsYfOcqFct5TrGRkHAl27GPOCquT144OJDeeHzai2k1GLhFHmLOI5cjqd0bDk4ySCM+mDUDa7pkF4kcR+0K67TJHcQlAXPdXlDEjAOdpwCQOSQLEaT6pA1yulQxTrNJhtzW8oiwy7ifNMfl4xno3t14q2sSxkrEw4bBkxkknsPXnio4J7a6/exvsDDaN0iuQAOSNpbAIGV5HUAgHirIdt24qE3cdQMDrjPIGByxxnsKTEyNUHO0AZyCBg847k9T69h61G8WDtJwCOueen6j9MdgOatAgttcjI4ORjGOMewHTHbjOW4ocIvHO7jtnn69ev459+ayYIxJQrEgNk/7THJ7Yz1+g7Hj3rh/GDRrouoxeYDJJY3LBepKKnJ/DIHsTivQbgwYO5uOBjHbpxzx7dunYV5V8S5BF4a1G6twUmVPL34AO2SZRIOnRsn8Khs0uf/0dj4cx7PBUTRwTXAm80tHC4R3dnMY2MWTaQBnhhjBI5r0TT5JxZXUB02+iHlPIDNdLvkYjG1JVuHdRnAUAqPcc14x8KGS40SRLu3kmt4ZZ8goskYEkSq3GSxYJvGAOQ5HOTj2aJtCbTfsv2E/ZVwPJ+xS7RkhuIzH1z3AIGCa7E+4KEpLRHSq8rTky2zMDLwzSK4UbDhv7qDjbtUE5Occk1NLYpIFDmXcBIPllkHMgIbJDKc4Py9NpHy4IBrJk/suW4Nnd2Bk8zC/NbFo3RyCSSqkKpK8hiCcbjwQTpRabpQtxCtlEkUmHKCJQMqxZSRgY2sxIz0Ofc1omKUGty2BbWVunnSmKNTGiM7ksScKmSxO5mOOc5JPPzE1J50KXIiJUSuC6oSu5lRhuIwM8buTyBxk565txHbWkDG008ytJL5rJCsSkyEgmQ7mRScgZYndnHfNVVW0ht4pxorR+YrI0QS3DRoAFAb94E2kInCs3RQRwAHczZsyCPzWkKb2zjGcj5TxgHIGccnvmqX2Y2lwXhQMhDsXeZzhiwYYQ7lAJJbORt7Ajpy11qPhtJLK8utLjjuMCNGl+x+ZbhG+U7ml4U5LAIWxzwDxVWzuPB8ypPDcWmmykn5AbIOoOSRlQ4J+dsc85YdCcq4jqzHP9mlsY7S2e1EYiRDKVQxhSpUqIyqrt4AG7uM8EtPdy2cfkSXTQxM0qrEWYAeaylQEbgFiMqMdQfTrzlslm7ILDxATsGFEX2QgKBjAxDwAMAjsAB0ANWvsWoMMxaqZSccNHEc/wDfKr1P/wCs1nJgG22WMajPHbwzBGWSVJM7V3FiBIQhPzfMegzmvHfiPcXNt4evxfYC3zQCEAl9jg7nQE4O0BNwOBkk16xNFrAyn26IHtm33fylFeLfFgXaeH4xeyxzP9qXDRoYxjy34wWf88/hWV9Skf/SyPhJqaro19p6sI5hKHjbcoZjIjDCgq3KiMn7rfTjn3yyvbozmCZI1K5zsdn2sFUsG/dgDO8Yyclfmx1x81fCCNJJL/O7c8aw5ViuFffuOQQQflGCOQfxr2zTxfCSee6aRyVRzHEzo27J2lf9KkAX5TuXChgcHPIroT1JZ6JHLcIVSeNFJCnAYt83UjlV6evfrgDFXw67/kzk8ELgk8HnA/H/AD15nTZkeLz41dfOZjh5PMAJODt+dxt44VThemO1aUdwvB3HJOfXv+p/yTXQmIglkuLjXBaOkgtDbMWdGdMylwANy4GABk9/TjNaKyRpbx2tsWfcADuzkjpyX+bPck85681kaniS0ZJdsfmNHkPjcy7xyRskwMdPl79VPzDLntdKluRPKHijgZXgeCEXD7l5Y7TbvsLEqSQx6cYwcy2Js7KBo3gYBjktkfTP17HNRNPIuXmwCSRls7WyT17gn6dazJrlhN5Eec46Hj+mKhvXuEsZvNkRQyNkMN3Y9irZ9vlP0NDkTcnin8gmCbzHkYozttkeMnao+UkEBQADtzwcnOcmo/7QhiuGtlWTezFf9XKUJChj8+3bjnruwTxycgYt1t1KGK7sLjazBHVowq5VsYb54nOQMkcDJyPosi3InaVbh2iAOI8oFPXG7Ee4dR/F2HvnFsC1NKVkZ8ckngV87fF6V4kt41c7bqWSZ1zkbkREXHpgZ49ya92uZvlIB6V85/FnUILo2McTfNEZwykYIwwTP0LI2D3xUl2P/9Py74WPL/bRWLIUwtuYEfKFZWB5B6kbfXnivomHVrrKTNCsaMAykNMzbcbuY/JyDgHjOd2B1IrxDwvo8Xhy6kn+1mVZI/LYBAuQWViDktwQuDx34IPNd2NT05GmEUZHng71UR4JYEZOU55JJ3Z5JzwcVskxXR6GmpyAqLpVHmAEGPzX5OByDEAMbhnOMc9MHGyl2py271A+dU79N2WbHsMV5fFr1isUcbwxOsBDLgKoVlyQRhQARk4xirp8ZQoMyFV+sg/9nDfriqTZOh2mozRWUf8Aac0KqsYKljIrj946E5LMnJIGPmHXvVW31uxZ4LuxAjWVsKPMjO/BPICyOTnBP0HtXDT+ONKkQoJ4IWcY3RTeX+YBBB9wapjxvp6RSwwXVuscuW2vNvIbOTyzZwe3p244pNks9jmuEXUJriTOIkz1zVWSdpG3zjfI45D/AHVXtkfSvKn8e2rs7NeWp3lc/MOijp97vTW8eWZyTd2xJOfvjr9N3btUuXmJRZ2sBuYZHYrN95VUlzt8vfj7hnIyFG4tgHHOCflqZNQmdnZ7aWIjgF2jO7r0Cu364rzZvF2lsVPmWmV3EH5cgscsRz1Y8n1PNNbxxaFgiXEBbsA3P5ZqHNdzRRfY7u6vn3bPIfHHzZTA5A/vZ756dvWvnn4pOZNYhP8A07L/AOhvXqJ1bVLhd0FjcTL1zHbzOPzUGuK13QbvXZ1ubvTtSV1TYNlrMBgEnvGeeawliKa3mvvNlSm/sv7j/9TZa00psvb6FprrtyCIU54BH3Vxjrn0x+Tkj0QMFn0GyX5gMi1jYcttB456YY8cDrXFDxX4RdUYXJt3TAGEcY+Vl/hBGFB4HIyc0x/GulRKy22p7+CVEscjc7AoBbbnG4ZY8k1+PpVvP8T7zmp+X4Hc+X4blGI9L0wMQuN9qo5ckLwQOMgj37VaglltgTpdrYw5DbfKhC8kfIOG9jnj8q4ZvHfh2Uv58yEbsqQknsRwUxwc49OKpyeL/BsZ3QXLJjaAEjdeEbeo4GOTnNXyVX0YuaHRo9Gm1XXC5KSkLkkbRGONvH3kPJbI+lSw+JL63x9oMn3guWVCASuRyirwDwTXkcnxH02IMtvLcOdsgXKDG5m3L1YcL06VK3xN0aQlZraV4y3HyrnGAQcbsZDdPak8PVf2A9rHue0L4rv50Vbe4WMsFZQwIOG74JH0qq+t6/uDGVGU7jnaBgY+Xrnvwa8el+IPhaWJoza3K712nCIODyed479KYPiRpiOzQi6VWk3FSiEbSoDKP3nGcZz2NT9UqfyB7aPc9ePim6jBN2zw7YxIx2KwUHqMheqnr7c09tbvJNyx6gEYZXBWPIc8jgryQOg7j1rypfidozria2uGJxkhEA/Leeo6/nVO68f6JMS0dhKzb0ky21TmM5TkE8in9Vn/ACB7ZfzHscl9rkpIW8DKXT7oA4/iG5eeeoPY9apxzanFKjSPNJmQg4uJvu9jtL49mH4ivFF8bojh7azePExmx5uQQww64K9G6+x5Falt8SLmNDE9sZRuLfNIM47ZO3qOme4qJYWp2/IarR7n/9k=", "tipo": "Entrevista de enfermagem"}], "hora": "08:21", "id": "r321673", "idade": "126 anos 10 meses", "kcalKg": 25, "leito": "109", "mapId": "1A-109@2026-11-09", "nivelManual": 1, "nome": "LEDA LISANDRA GOMES", "nrsEstado": null, "nrsGrav": null, "perdaPeso": "Nega perda de peso em 3 meses", "peso": "60", "ptnKg": 1.2, "registro": "321673", "setor": "1A", "updatedAt": 1794223747402, "via": "oral"}, "settings": {"hidden": ["1A-101", "1A-102", "1A-103", "1A-104", "1A-105", "1A-112", "1A-113", "1A-114", "3B-322", "3B-323", "3B-324", "3B-325", "3B-326", "3B-327", "3B-328", "3B-329", "3B-330", "3B-331", "3B-332", "3B-333", "3B-334", "1A-111"], "outros": {}, "updatedAt": 1794221501222}, "adm-r321669": {"altura": "", "criadoEm": 1794222226260, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Maria Violeta Carneiro de Oliveira", "fotos": [], "id": "r321669", "idade": "69 anos", "kcalKg": 25, "leito": "112", "mapId": "1A-112@2026-11-09", "nome": "ANNA LUIZA GAYOSO E ALMENDRA MONNERAT", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321669", "setor": "1A", "updatedAt": 1794222226526, "via": "oral"}, "adm-r321683": {"altura": "", "criadoEm": 1794222226258, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Ivanize Maria de Souza Favoreto", "fotos": [], "id": "r321683", "idade": "42 anos 5 meses", "kcalKg": 25, "leito": "102", "mapId": "1A-102@2026-11-09", "nome": "JULIANA FAVORETO", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321683", "setor": "1A", "updatedAt": 1794222226522, "via": "oral"}, "adm-r321668": {"altura": "", "ccHora": "17:00", "criadoEm": 1794222226259, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Regina Lucia de a Bandeira", "fotos": [], "hora": "08:19", "id": "r321668", "idade": "49 anos 2 meses", "kcalKg": 25, "leito": "106", "mapId": "1A-106@2026-11-09", "nivelManual": 1, "nome": "VINICIUS DE ALMEIDA BANDEIRA", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321668", "setor": "1A", "updatedAt": 1794223584485, "via": "oral"}, "adm-r321664": {"altura": "170", "ccHora": "17:00", "criadoEm": 1794222226259, "dataAval": "2026-11-09", "dia": "2026-11-09", "diagnostico": "Histerectomia ", "doMapa": true, "filiacao": "Maria Clara Dale Thorstensen", "fotos": [{"resumo": "Peso, altura, restrições, perda de peso, HPP", "thumb": "data:image/jpeg;base64,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", "tipo": "Entrevista de enfermagem"}], "hora": "08:19", "hpp": "DPOC, tabagismo, dislipidemia, artrose", "id": "r321664", "idade": "79 anos", "kcalKg": 25, "leito": "108", "mapId": "1A-108@2026-11-09", "nivelManual": 1, "nome": "MARIA CLARA THORSTENSEN ASSIS", "nrsEstado": null, "nrsGrav": null, "perdaPeso": "Nega perda de peso em 3 meses", "peso": "80", "ptnKg": 1.2, "registro": "321664", "setor": "1A", "updatedAt": 1794223744538, "via": "oral"}, "adm-r321713": {"altura": "", "criadoEm": 1794222226258, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Maria do Carmo Soares Uchino", "fotos": [], "id": "r321713", "idade": "48 anos", "kcalKg": 25, "leito": "103", "mapId": "1A-103@2026-11-09", "nome": "BRUNO SOARES UCHINO", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321713", "setor": "1A", "updatedAt": 1794222226522, "via": "oral"}, "adm-r321670": {"altura": "", "criadoEm": 1794222226259, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Cadastro Ficticio", "fotos": [], "id": "r321670", "idade": "126 anos 10 meses", "kcalKg": 25, "leito": "105", "mapId": "1A-105@2026-11-09", "nome": "MARIA CAROLINA SILVA", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321670", "setor": "1A", "updatedAt": 1794222226523, "via": "oral"}, "map-2026-11-09": {"admIgnoradas": ["1A-107"], "altas": [], "date": "2026-11-09", "importedAt": 1794222005422, "patients": [{"id": "1A-101", "leito": "101", "setor": "1A", "vazio": true}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Ivanize Maria de Souza Favoreto", "flag": false, "hda": "", "hpp": "", "id": "1A-102", "idade": "42 anos 5 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "102", "liqEsp": "", "na": "", "nome": "JULIANA FAVORETO", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321683", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Maria do Carmo Soares Uchino", "flag": false, "hda": "", "hpp": "", "id": "1A-103", "idade": "48 anos", "imc": "", "itemAvulso": "", "lab": "", "leito": "103", "liqEsp": "", "na": "", "nome": "BRUNO SOARES UCHINO", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321713", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Katia Vilela Rezende Yanagihara", "flag": false, "hda": "", "hpp": "", "id": "1A-104", "idade": "39 anos", "imc": "", "itemAvulso": "", "lab": "", "leito": "104", "liqEsp": "", "na": "", "nome": "MICHELLE REZENDE YANAGIHARA", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321695", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Cadastro Ficticio", "flag": false, "hda": "", "hpp": "", "id": "1A-105", "idade": "126 anos 10 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "105", "liqEsp": "", "na": "", "nome": "MARIA CAROLINA SILVA", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321670", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "edit": {"di": ""}, "filiacao": "Regina Lucia de a Bandeira", "flag": false, "hda": "", "hpp": "", "id": "1A-106", "idade": "49 anos 2 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "106", "liqEsp": "", "na": "", "nome": "VINICIUS DE ALMEIDA BANDEIRA", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321668", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": false, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "edit": {"nutriNome": "Day"}, "filiacao": "Lidice Maria do Amaral Cardinot", "flag": false, "hda": "", "hpp": "", "id": "1A-107", "idade": "49 anos 4 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "107", "liqEsp": "", "na": "", "naoAdmissao": true, "nome": "FABIANA DO AMARAL CARDINOT", "nrs": "", "obsGeral": "", "obsLeito": "", "outroNutri": true, "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321667", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "edit": {"altura": "170", "di": "Histerectomia ", "hpp": "DPOC, tabagismo, dislipidemia, artrose", "peso": "80"}, "filiacao": "Maria Clara Dale Thorstensen", "flag": false, "hda": "", "hpp": "", "id": "1A-108", "idade": "79 anos", "imc": "", "itemAvulso": "", "lab": "", "leito": "108", "liqEsp": "", "na": "", "nome": "MARIA CLARA THORSTENSEN ASSIS", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321664", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "edit": {"altura": "155", "di": "Plástica de face e palpebras", "peso": "60"}, "filiacao": "Cadastro Ficticio", "flag": false, "hda": "", "hpp": "", "id": "1A-109", "idade": "126 anos 10 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "109", "liqEsp": "", "na": "", "nome": "LEDA LISANDRA GOMES", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321673", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "edit": {"altura": "64", "di": "Hemorroidectomia", "hpp": "DM, dlp", "peso": "96"}, "filiacao": "Anadir Peixoto Ferreira", "flag": false, "hda": "", "hpp": "", "id": "1A-110", "idade": "61 anos 2 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "110", "liqEsp": "", "na": "", "nome": "ADRIANA PEIXOTO FERREIRA", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321663", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Xinhua Liu", "flag": false, "hda": "", "hpp": "", "id": "1A-111", "idade": "49 anos 9 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "111", "liqEsp": "", "na": "", "nome": "PEI CAO", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321706", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Maria Violeta Carneiro de Oliveira", "flag": false, "hda": "", "hpp": "", "id": "1A-112", "idade": "69 anos", "imc": "", "itemAvulso": "", "lab": "", "leito": "112", "liqEsp": "", "na": "", "nome": "ANNA LUIZA GAYOSO E ALMENDRA MONNERAT", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321669", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"ac": "", "adm": "", "admissao": true, "alergias": "", "altura": "", "bloqueios": "", "classIMC": "", "controle": "", "di": "", "dieta": "", "filiacao": "Nilcea de Souza Quitete", "flag": false, "hda": "", "hpp": "", "id": "1A-113", "idade": "61 anos 1 meses", "imc": "", "itemAvulso": "", "lab": "", "leito": "113", "liqEsp": "", "na": "", "nome": "CARLA QUITETE XAVIER", "nrs": "", "obsGeral": "", "obsLeito": "", "peso": "", "pi": "", "plantao": "", "po": "", "preferencias": "", "proxEvol": "", "proxReav": "", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321692", "restDieta": "", "setor": "1A", "sno": "", "soColuna1": true, "ufi": "", "vet": ""}, {"id": "1A-114", "leito": "114", "setor": "1A", "vazio": true}, {"ac": "", "adm": "2026-11-01", "alergias": "", "altura": "162", "bloqueios": "CONSTIPANTES , GORDURA (DLP), GELATINA E SORVETE ( USO DE ESPESSANTE )", "classIMC": "Magreza", "controle": "Paciente Preenche Cardápio", "di": "INFECÇÃO DO TRATO URINÁRIO DE LOCALIZAÇÃO NÃO ESPECIFICADA", "dieta": "SEMILÍQUIDA HIPOLIPÍDICA", "filiacao": "Guiomar Duarte Siqueira", "flag": false, "hda": "PACIENTE DEU ENTRADA, CAOMPANHADA DO DR CAIO DA EQUIPE CLAUDIO DOMENICO, COM SINAIS DE NOVA INFECÇÃO DO TRATO URINÁRIO: ALTERAÇÃO DA COR E ODOR URINÁRIO, ALÉM DE QUEDA DO ESTADO GERAL. FOI COLETADA URINOCULTURA AMBULATORIAL COM CRESCIMENTO DE PSEUDOMONAS AERUGINOSA.", "hpp": "MP definitivo (implante abril\\23) / ITU repetição // Sd demencial // dislipidemia //", "id": "3B-322", "idade": "89 anos 8 meses", "imc": "20.9", "itemAvulso": "BODY PROTEIN NEUTRO (1) OBS: envio sob demanda", "lab": "", "leito": "322", "liqEsp": "", "na": "2", "nome": "MARIA JOSE SIQUEIRA LORUSSO", "nrs": "3 - COM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "55", "pi": "64.3", "plantao": "01/11 - Noturno: Paciente admitida, PENDÊNCIA DE VISITA. Questiono sobre FI acompanhante refere intestino \"sensível\", mas no momento sem diarreia. Está prescrita dieta constipante, deixo no bloqueio.\n02/11: Sem intercorrencias\n03/11: Sem intercorrências.\n04/11: Noturno: paciente com body protein prescrito (2 scoops no desjejum e 2 no lanche), porém recebendo nutren sênior. Por favor confirmar se vai fazer alteração de SNO.\n04/11 - Neide, cuidadora da paciente refere ter trazido body protein e nutren sênior para paciente, ambos sendo manipulados no leito. Oriento sobre alimentos externos. Relato para Fernanda líder ocasião, e decidimos não suspender prescrição de ambos sistemas para cunho de registros.\n05/11-Dieta zero para procedimento cirurgico a tarde.\n06/11: Noturno: Libero dieta anterior (semilíquida hipolipídica), conforme prescrição médica.\n06/11 - Paciente assistida, sem intercorrências.\n07/11: Noturno: acompanhante liga solicitando nutridrink compact protein baunilha (constava em prescrição 1x/dia), porém já estava com body protein (1x) e nutren sênior (3x), retiro o nutren sênior da terapia nutricional. Por favor avaliar e alinhar com a acompanhante e equipe médica o suplemento que será ofertado.", "po": "", "preferencias": "SUCO DE GOIABA / FRUTAS COZIDAS", "proxEvol": "2026-11-09", "proxReav": "2026-11-15", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "320496", "restDieta": "GORDURA (DLP), CONSTIPANTES", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "VET proposto: 1650 kcal (30 kcal/kg) e 55 g de proteína (1 g/kg)."}, {"id": "3B-323", "leito": "323", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-10-06", "alergias": "", "altura": "170", "bloqueios": "CREME BANANA, CREME DE MAÇA, EMBUTIDOS (HAS), GELEIA, GORDURA (DLP), PÃO CARECA, QUEIJO MINAS, QUEIJO MINAS FRESCAL, MUFFIN DO CHEF, OVOS, SUCO DE GOIABA", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio, Acompanhante", "di": "#ITU #Quadro Confusional Agudo/Desidratação #Celulite Peri-GST de repetição #Trombose de Veia Poplítea", "dieta": "PASTOSA DIABETES HIPOSSÓDICA", "filiacao": "Brasilia Souza Bandeira de Mello", "flag": true, "hda": "#fibrose de veias em membros superiores por múltiplas internações #Fístula Vésico-vaginal Braden: alto risco", "hpp": "- HAS; Dislipidemia; DAC; DM #Volumosa hérnia hiatal", "id": "3B-324", "idade": "85 anos 6 meses", "imc": "24.2", "itemAvulso": "", "lab": "", "leito": "324", "liqEsp": "", "na": "2", "nome": "WILMA SOUZA BANDEIRA DE MELLO", "nrs": "3 - COM RISCO", "obsGeral": "liquidos espessados em nectar Adoçante", "obsLeito": "Recomendado", "peso": "70", "pi": "70.81", "plantao": "05/11: Sem intercorrências.\n06/11: Sem intercorrências.", "po": "", "preferencias": "suco lima FRUTAS SEMPRE EM FORMATO DE CREME, LARANJA, VITAMINA, MINGAU ** FATIA DE BOLO NO LANCHE DA TARDE - QUANDO DIETA DIETA PERMITIR **", "proxEvol": "2026-11-11", "proxReav": "2026-11-10", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "316415", "restDieta": "", "setor": "3B", "sno": "Café da Manhã: NUTREN SENIOR OBS: batido na vitamina de frutas vermelhas Lanche da Tarde: WHEY PROTEIN ISOLATE (1) OBS: batido na vitamina banana", "soColuna1": false, "ufi": "regular", "vet": ""}, {"id": "3B-325", "leito": "325", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-11-08", "alergias": "", "altura": "165", "bloqueios": "LACTOSE ( PREFERÊNCIA ), GLUTEN (PREFERENCIA)", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "Prostração + desdidratação", "dieta": "BRANDA HIPOLIPÍDICA", "filiacao": "Maria da Gloria f v Fernandes", "flag": false, "hda": "", "hpp": "- Retopexia ventral por prolapso retal + Herniorrafia umbilical robótica - CA colon (out/22) > Retossigmoidectomia > QT adjuvante - Desconforto torácico há 1 ano c/ alargamento de QT > Sem diagnóstico após CAT e RNM cardíaca - Hipotireoidismo / DLP", "id": "3B-326", "idade": "49 anos 10 meses", "imc": "23.5", "itemAvulso": "", "lab": "", "leito": "326", "liqEsp": "", "na": "1", "nome": "ANA LIDIA VIEIRA FERNANDES", "nrs": "0 - SEM RISCO", "obsGeral": "- Açúcar e Adoçante", "obsLeito": "", "peso": "64", "pi": "59.08", "plantao": "08: Admito paciente com dieta branda, deixo adapatadA para hipolipídica; PENDÊNCIA DE VISITA.\n08/11 Noturno: Paciente solicita de jantar abobora gratinada, chefe de cozinha sinaliza que só teria o pure, ligo e informa a AC e a mesma diz que a paciente aceitaria com o pure de abobora.", "po": "", "preferencias": "", "proxEvol": "2026-11-12", "proxReav": "2026-11-14", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321561", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": ""}, {"ac": "", "adm": "2026-10-31", "alergias": "", "altura": "157", "bloqueios": "AGUA DE COCO, EMBUTIDOS (HAS), GORDURA (DAC), BANANA , MAÇÃ, MINGAU DE MAISENA", "classIMC": "Excesso de peso", "controle": "Paciente Preenche Cardápio", "di": "Herniorrafia + RECONSTRUÇÃO DE TRANSITO INTESTINAL", "dieta": "DIETA ZERO, PASTOSA LAXATIVA", "filiacao": "Aurora da Cunha", "flag": true, "hda": "", "hpp": "HAS, DAC", "id": "3B-327", "idade": "79 anos 11 meses", "imc": "36.5", "itemAvulso": "", "lab": "", "leito": "327", "liqEsp": "", "na": "3", "nome": "ANGELA MARIA RODRIGUES LEAL", "nrs": "0 - SEM RISCO", "obsGeral": "- Adoçante", "obsLeito": "Recomendado", "peso": "90", "pi": "60.39", "plantao": "05/11 - Dieta foi evoluída para pastosa, MA dr Silas solicita que dieta seja laxativa, sigo orientação.\n07/11 - Dieta evoluída para Branda laxativa. Ajusto informação com Raquel, AC. Mais tarde, equipe involui para pastosa novamente.\n07/11: Notruno: dieta zero por distensão abdominal.", "po": "", "preferencias": "", "proxEvol": "2026-11-09", "proxReav": "2026-11-14", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "320395", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "1800 kcal (20 kcal/kg) e 108 g de proteínas (1,2 g/kg)"}, {"id": "3B-328", "leito": "328", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2025-11-05", "alergias": "", "altura": "165", "bloqueios": "", "classIMC": "Excesso de peso", "controle": "Fono", "di": "QUEDA DO ESTADO GERAL", "dieta": "DIETA ENTERAL", "filiacao": "Aida Tavares de Oliveira", "flag": false, "hda": "BRADEN: risco alto", "hpp": "ALZHEIMER; HIPOTIREOIDISMO", "id": "3B-329", "idade": "87 anos 3 meses", "imc": "28.6", "itemAvulso": "", "lab": "", "leito": "329", "liqEsp": "", "na": "3", "nome": "AMARILDO TAVARES SILVEIRA", "nrs": "4 - COM RISCO", "obsGeral": "", "obsLeito": "", "peso": "78", "pi": "66.7", "plantao": "NRS >>>>>>>>>>>> MENSAL\n29/09 - Segue com TNE.\n08/10: Sem intercorrências\n18/10: Sem intercorrências.", "po": "", "preferencias": "", "proxEvol": "2026-11-09", "proxReav": "2026-11-16", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "204616", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "FRESUBIN HP ENERGY 1000ML, GTT, 870 ml, OBS: 40 ml/h VET PROPOSTO FINAL - 1627,5 KCAL VET PRESCRITO - 1410 KCAL PTN PRESCRITA - 81,45 g/dia"}, {"id": "3B-330", "leito": "330", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-10-07", "alergias": "", "altura": "164", "bloqueios": "AÇAÍ (NO MOMENTO), ALIMENTOS ÁCIDOS , LACTOSE ( PREFERÊNCIA ), LACTOSE (CIRURGIÃO), SORBET DE MANGA, SORBET FRUTAS VERMELHAS", "classIMC": "Eutrofia", "controle": "", "di": "Amigdalectomia e sinusectomia", "dieta": "DIETA ENTERAL", "filiacao": "Maria Soares Cunha", "flag": false, "hda": "", "hpp": "NEGA", "id": "3B-331", "idade": "57 anos 9 meses", "imc": "22.3", "itemAvulso": "", "lab": "", "leito": "331", "liqEsp": "", "na": "3", "nome": "CATIA CUNHA VARANDAS", "nrs": "3 - COM RISCO", "obsGeral": "", "obsLeito": "", "peso": "60", "pi": "58.36", "plantao": "12/10: Paciente com baixíssima aceitação e com dificuldade de deglutição.\n12/10 NOTURNO - Ac entra em contato solicitando que não envie o whey protein isolado está insegura pois a enfermeira disse que tem lactose, mesmo explicando o processo do whey isolado ela recusa. Alinhar outra opção.\n14/10: Mantido jejum até o momento, aguardando avaliação de terapia nutricional.\n15/10 - Segue em jejum, sem intervenção de TNE.\n16/10: Paciente segue em VO zero, iniciou TNE hoje, sem evolução pela EMTN até o fim do plantão.\n17/10: TNE exclusiva, inviabilidade de VO.\n18/10: Sem intercorrências.\n22/10: Sem intercorrencias.\n23/10: Volume aumentado na TNE.\n28/10 - Paciente segue com inviabilidade de VO.\n07/11 - Paciente solicita inclusão de ACOMPANHANTES na lista do chá diariamente. Everaldo ciente.", "po": "", "preferencias": "", "proxEvol": "2026-11-10", "proxReav": "2026-11-11", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "316427", "restDieta": "FRESUBIN ENERGY - 1200ML ( 55ML/H ) VIA GTT", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "VET proposto: 1650 kcal (27,5 kcal/kg) e 105 g de proteína (1,75 g/kg)."}, {"id": "3B-332", "leito": "332", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-11-05", "alergias": "", "altura": "173", "bloqueios": "AÇÚCAR ( DM ), EMBUTIDOS (HAS)", "classIMC": "Excesso de peso", "controle": "Paciente Preenche Cardápio", "di": "Cistoscopia / uretroscopia", "dieta": "BRANDA DIABETES HIPOSSÓDICA", "filiacao": "Ermezinda Esteves Dos Reis", "flag": false, "hda": "POT DE ENUCLEAÇÃO PROSTÁTICA, EVOLUINDO COM DISÚRIA.", "hpp": "HAS, DM, DLP, EH, TEP, TVP, 5 STENTS.", "id": "3B-333", "idade": "74 anos 9 meses", "imc": "28", "itemAvulso": "", "lab": "", "leito": "333", "liqEsp": "", "na": "1", "nome": "SERGIO ESTEVES FERREIRA DOS REIS", "nrs": "2 - SEM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "84", "pi": "73.33", "plantao": "NOTURNO: ADMITIDO COM DIETA BRANDA, ADAPTO PARA AS COMORBIDADES. PENDÊNCIA DE VISITA.\n06/11: Paciente assistido, sem apontamentos.", "po": "", "preferencias": "", "proxEvol": "2026-11-12", "proxReav": "2026-11-12", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321251", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "1680 kcal (20 kcal/kg) e 100,8 g de proteína (1,2 g/kg)"}, {"ac": "", "adm": "2026-10-03", "alergias": "", "altura": "183", "bloqueios": "GOIABA , LEITE, MARACUJÁ, ÁGUA DE COCO.", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "hematúria maciça", "dieta": "DIETA ENTERAL, DIETA ZERO", "filiacao": "Maria Alzira m Ferreira Pucheu", "flag": false, "hda": "", "hpp": "- Hipertensão Arterial Sistêmica - Diabetes Mellitus ti", "id": "3B-334", "idade": "88 anos 6 meses", "imc": "24.7", "itemAvulso": "", "lab": "", "leito": "334", "liqEsp": "", "na": "3", "nome": "CARLOS EDUARDO PUCHEU", "nrs": "6 - COM RISCO", "obsGeral": "ENVIAR APENAS QUANDO SOLICITAR!!", "obsLeito": "", "peso": "83", "pi": "82.05", "plantao": "05/11- TNE asssociada a dieta branda, Pac tem recusado todas as refeições, enviar apenas quando pac solicitar.", "po": "", "preferencias": "Suco lima, pêra, maçã, iogurte normal de morango (autorizado).", "proxEvol": "2026-11-10", "proxReav": "2026-11-21", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "315928", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "SURVIMED OPD EASY BAG 1000 ML , OBS: 720 ml à 30 ml/h 25kcal e 1,2g"}, {"id": "3B-335", "leito": "335", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-08-31", "alergias": "", "altura": "169", "bloqueios": "GELATINA DE UVA, PAES.", "classIMC": "Magreza", "controle": "Paciente Preenche Cardápio", "di": "", "dieta": "DIETA PARENTERAL, LÍQUIDA", "filiacao": "Cleonice Cerveira Leit", "flag": false, "hda": "", "hpp": "- Colectomia total em 2017 por câncer colorretal - Mtx hepática e pulmonar -", "id": "3B-336", "idade": "81 anos 3 meses", "imc": "20.3", "itemAvulso": "", "lab": "", "leito": "336", "liqEsp": "", "na": "3", "nome": "HELIO CERVEIRA LEITE", "nrs": "6 - COM RISCO", "obsGeral": "ATENÇÃO: *APENAS ÁGUA, ÁGUA DE COCO, GELATINA DIET, torrada comum, IOGURTE NATURAL SEM LACTOSE, IMPACT E CAFÉ DESCAFEINAD O SOPAS, CALDOS E PICOLÉ*", "obsLeito": "", "peso": "58", "pi": "69.97", "plantao": "NRS >>>>>>>> PRÓXIMA QUINZENAL NPT exclusiva.\n30/10: Dieta oral liberada: líquida, (APENAS ÁGUA, ÁGUA DE COCO, SUPLEMENTO IMPACT E CAFÉ DESCAFEINADO), em conversa com esposa a mesma sinaliza que o cafe descafeinado ela está utilizando da máquina do quarto e água de coco ele só gostaria se fosse coco legal e que a mesma comprou pelo ifood, informo que iremos fazer a solicitação de compra da água de coco.\n01/11: MA liberou iogurte natural sem lactose e gelatina diet\n02/11 :MA liberou torrada comum.\n05/11; SEM INTERCORRENCIAS", "po": "PO (10/09) Cistoscopia - sangramento proveniente da mucosa vesical e uretral, aspecto de cistite hemorragica Identificado volumosa fistula para o reto - necrose das bordas da fistula (cauterizacao dos vasos de mucosa vesical e uretral e do colo da fistula) Nefrostomia bilateral (17/09) PO NEFROSTOMIA PO embolização de artérias vesicais (22/09) PO Derivação de trânsito intestinal PO de embolização de artérias vesicais (10/10) PO reposicionamento de dreno glúteo (12/10)", "preferencias": "TORRADA, Gelatina de framboesa. Ovo cozido, manteiga, iogurte apenas o natural sem lactose, omelete.", "proxEvol": "2026-11-10", "proxReav": "2026-11-19", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "310773", "restDieta": "SMOFKABIVEN - 1600 ML (67 ML/H)", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": ""}, {"id": "3B-337", "leito": "337", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-11-09", "alergias": "", "altura": "184", "bloqueios": "EMBUTIDOS (HAS), GORDURA (DAC)", "classIMC": "Excesso de peso", "controle": "Paciente Preenche Cardápio", "di": "Constipação", "dieta": "BRANDA LAXATIVA", "filiacao": "Sophia de Freitas Santos", "flag": false, "hda": "", "hpp": "HAS, DAC, Hipotiroidismo", "id": "3B-338", "idade": "79 anos 9 meses", "imc": "29.5", "itemAvulso": "", "lab": "", "leito": "338", "liqEsp": "", "na": "1", "nome": "LUIZ FERNANDO DE FREITAS SANTOS", "nrs": "1 - SEM RISCO", "obsGeral": "- Açúcar e Adoçante", "obsLeito": "", "peso": "100", "pi": "82.95", "plantao": "09/11 Noturno: Liberado dieta oral Branda Laxativa, agora pela manhã. Pendencia de visita.", "po": "", "preferencias": "", "proxEvol": "2026-11-16", "proxReav": "2026-11-16", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321694", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "2000 kcal (20 kcal/kg) e proteínas: 120 g (1,2 g/kg)."}, {"ac": "", "adm": "2026-11-05", "alergias": "", "altura": "185", "bloqueios": "DM., EMBUTIDOS (HAS)", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "ERISIPELA EM MMII", "dieta": "BRANDA DIABETES HIPOSSÓDICA", "filiacao": "Edna Lynch de Araujo", "flag": true, "hda": "Com uso de cateter e desde então com piora do edema de extremidades inferiores, associado a aparecimento de lesões crostosas e descamativas, com saída de líquido e secreção,", "hpp": "hipertenso, dislipidêmico, obeso, ITU Repetição, hipotiroideo", "id": "3B-339", "idade": "82 anos 8 meses", "imc": "26.2", "itemAvulso": "", "lab": "", "leito": "339", "liqEsp": "", "na": "1", "nome": "JOSE CARLOS LYNCH DE ARAUJO", "nrs": "2 - SEM RISCO", "obsGeral": "- Adoçante", "obsLeito": "Recomendado", "peso": "90", "pi": "83.85", "plantao": "05/11:Paciente admitido, libero dieta de acordo com preferencias alimentares, sem intercorrencias.\n06/11: Paciente questiona que não veio manteiga no cdm e pede para enviar sempre. Solicita para enviar almoço sempre 11h, ajusto na obs da refeição.\n07/11 - Waldyr relata que paciente pediu para retirar almoço agendado para 11:30h, paciente agora quer receber 12:30h, não insiro em bloqueios pois não quer horário fixo durante visita hoje.", "po": "", "preferencias": "**** OMELETE DE QUEIJO | PREFERENCIA POR INTEGRAIS | FRUTA : MAMAO E LARANJA | IOGURTE NATURAL, GREGO,GRANOLA, LINHAÇA*** - ENVIAR SEMPRE MANTEIGA NO CDM", "proxEvol": "2026-11-12", "proxReav": "2026-11-12", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321200", "restDieta": "HIPOGLICIDICA, HIPOSSODICA", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "VET proposto diário de 2700 kcal (30 kcal/kg) e proteínas: 90 g (1 g/kg)."}, {"ac": "", "adm": "2026-11-08", "alergias": "", "altura": "170", "bloqueios": "", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "Dor lombar sem irradiação de forte intensidade", "dieta": "BRANDA RENAL", "filiacao": "Rina Bonadies Santos", "flag": false, "hda": "", "hpp": "HAS, IRC CONSERVADOR , M.P, NEO PROSTATA", "id": "3B-340", "idade": "71 anos 9 meses", "imc": "26.9", "itemAvulso": "", "lab": "", "leito": "340", "liqEsp": "", "na": "2", "nome": "MANUEL INNOCENCIO DE LACERDA SANTOS JUNIOR", "nrs": "3 - COM RISCO", "obsGeral": "HIPOSSODICA LAXATIVA", "obsLeito": "", "peso": "78", "pi": "70.81", "plantao": "Dieta branda adaptada para renal, esposa (acomapanhante), relatou que não faz nenhuma restrição.", "po": "", "preferencias": "", "proxEvol": "2026-11-13", "proxReav": "2026-11-15", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321624", "restDieta": "EMBUTIDOS (HAS), IRC", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": ""}, {"ac": "", "adm": "2026-11-07", "alergias": "CORANTE AMARELO, LACTOSE", "altura": "177", "bloqueios": "LACTOSE, SEM RESIDUOS, CAFÉ. , LEITE", "classIMC": "", "controle": "Paciente Preenche Cardápio", "di": "Cefaleia/ êmese/ enjoo", "dieta": "BRANDA SEM RESÍDUOS", "filiacao": "Erica Coelho Machado Fernandes", "flag": false, "hda": "", "hpp": "Nega", "id": "3B-341", "idade": "16 anos 3 meses", "imc": "27.7", "itemAvulso": "", "lab": "", "leito": "341", "liqEsp": "", "na": "3", "nome": "NICHOLAS FERNANDES CHARTINI", "nrs": "2 - SEM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "87", "pi": "", "plantao": "07/11 Noturno: Liberado dieta oral Branda sem residuos, registro de intolerante a lactose e corante amarelo.\n07/11- Passo visita e confirmo suas preferencias. Replicar as pequenas refeições.", "po": "", "preferencias": "sucos/ geleia diet/ pão e ovos/ torrada/queijos", "proxEvol": "2026-11-10", "proxReav": "2026-11-14", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321475", "restDieta": "", "setor": "3B", "sno": "", "soColuna1": false, "ufi": "", "vet": "1740 kcal (20 kcal/kg) e 104,4 g de proteína (1,2 g/kg)."}, {"id": "3B-342", "leito": "342", "setor": "3B", "vazio": true}, {"ac": "", "adm": "2026-04-25", "alergias": "ALIMENTOS ÁCIDOS , CHÁ, ERVAS VERDES, GELEIA, LEITE PURO, NEGA ALERGIAS, GELATINA E SORVERTE", "altura": "149", "bloqueios": "AÇÚCAR ( DM ), CHÁ, CREME DE MAÇA, CREME DE PERA, DIABETES, EMBUTIDOS (HAS), ERVAS E ESPECIARIAS, GELATINA E SORVETE ( USO DE ESPESSANTE ), LEITE, LEITE PURO, PÃO DE FORMA, PERA COZIDA, PERA E MAÇA COZIDAS", "classIMC": "Excesso de peso", "controle": "Controle Glicêmico, Paciente Preenche Cardápio", "di": "Paciente submetida a implante de cateter PAM + cateter venoso central + cateter para diálise de curta permanência.", "dieta": "DIETA ENTERAL, SEMILÍQUIDA", "filiacao": "Maria Jose Carvalho", "flag": false, "hda": "Braden: risco moderado Anemia > 26/04 Disfunção renal aguda 07/05 - broncoespasmos e taquidispneia BRADEN: Risco moderado", "hpp": "HAS, DM, Dç diverticular, enfisema pulmonar", "id": "4A-401", "idade": "77 anos 1 meses", "imc": "34.6", "itemAvulso": "", "lab": "19/09: RDW 19,3^| Ur 59.0 - Anemia ferropriva?", "leito": "401", "liqEsp": "néctar", "na": "3", "nome": "CARMEN LUCIA AMORIM DE LUNA VELOSO", "nrs": "6 - COM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "77", "pi": "54.39", "plantao": "NRS >>>> MENSAL\n07/11- TNE associada a dieta pastosa com liquidos espessados em nectar sem restrição de volume, sem apontamentos.\n08/11 - Fono involui dieta para SL.", "po": "", "preferencias": "SUCO DE MELANCIA MOLICO PREPARAÇÕES CO M TEMPERO- ALHO // SEM MOLHO DE ERVAS VARIAR O SABOR DA VITAMINA BATIDA COM O SUPLEMENTO (FRUTAS PREFERIDAS: MANGA,MORANGO, BANANA, ABACATE)", "proxEvol": "2026-11-10", "proxReav": "2026-11-20", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "290544", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "SURVIMED OPD EASY BAG 1000 ML , cne, 800 ml -"}, {"ac": "", "adm": "2026-12-16", "alergias": "IODO", "altura": "150", "bloqueios": "ALIMENTOS RICOS EM POTÁSSIO, AÇÚCAR ( DM )", "classIMC": "Magreza", "controle": "Controle Glicêmico, Paciente Preenche Cardápio, Precaução de Contato", "di": "SEPSE / ITU", "dieta": "DIETA ENTERAL", "done": {"evol": null}, "edit": {"proxEvol": "2026-11-09"}, "filiacao": "Lydia Auler Elvas Reboucas", "flag": false, "hda": "BRADEN: risco alto", "hpp": "HAS, DLP, IRC", "id": "4A-402", "idade": "96 anos 5 meses", "imc": "19.5", "itemAvulso": "GAN CICATRIZAÇÃO SACHÊ 35 GRAMAS (2) OBS: via gtt", "lab": "", "leito": "402", "liqEsp": "", "na": "3", "nome": "NEYDE ELVAS REBOUCAS DE AZEVEDO", "nrs": "4 - COM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "44", "pi": "55.13", "plantao": "NRS >>>>>>>>>>> MENSAL\n31/10 - Sem intercorrências.\n06/11 - sem intercorrências", "po": "", "preferencias": "", "proxEvol": "2026-11-09", "proxReav": "2026-11-13", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "272676", "restDieta": "FREUBIN ENERGY - 880 ML (40 ML/H), VIA GTT", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "VET PROPOSTO FINAL - 1250 KCAL VET PRESCRITO - 1300 KCAL PTN PRESCRITA - 49,4 g/dia"}, {"ac": "", "adm": "2026-11-07", "alergias": "", "altura": "162", "bloqueios": "EMBUTIDOS (HAS)", "classIMC": "Eutrofia", "controle": "Precaução Respiratória, Paciente Preenche Cardápio", "di": "COVID", "dieta": "DIETA ZERO", "filiacao": "Laudelina de sa e Silva", "flag": false, "hda": "Há 7 dias apresentando sintomas gripas. Evolui com queda no estado geral, prostração, piora da tosse com secreção amarelada e dificuldade de expectoração. Nega febre, dor torácica ou dispneia. À entrada, com swab positivo para COVID-19 e TC de tórax exibindo opacidades em vidro fosco.", "hpp": "HAS | Fibrilação atrial paroxística | Hipotireoidismo", "id": "4A-403", "idade": "98 anos 1 meses", "imc": "23.6", "itemAvulso": "", "lab": "", "leito": "403", "liqEsp": "", "na": "3", "nome": "LAIS ESTEVES LOFFREDI", "nrs": "3 - COM RISCO", "obsGeral": "", "obsLeito": "", "peso": "62", "pi": "64.3", "plantao": "08/11 - Inicio SNO 2x ao dia (hiper/hiper), avaliar aceitação. - Paciente entra em dieta zero, não sou informado, vejo por prescrição.", "po": "", "preferencias": "", "proxEvol": "2026-11-10", "proxReav": "2026-11-14", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321541", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "Regular.", "vet": "VET PROPOSTO diário: 1550 kcal (25 kcal/kg) e proteínas: 74,4 g (1,2 g/kg)."}, {"ac": "", "adm": "2026-10-27", "alergias": "", "altura": "163", "bloqueios": "EMBUTIDOS (HAS), ALIMENTOS RICOS EM POTÁSSIO ( DRC )", "classIMC": "Magreza", "controle": "Paciente Preenche Cardápio", "di": "Diarreia e Cefaleia", "dieta": "BRANDA SEM RESÍDUOS", "filiacao": "Pina Magni Horbach", "flag": false, "hda": "Paciente idosa fragil, hipertensa e hipotireoidea, refere quadro de diarreia liquida sem caracteristicas invasivas há 48 horas, associado à cefaleia frontal e retrorbitaria bilateral. Observada pressao arterial elevada.", "hpp": "- HAS, Hipotireoidismo e DRC em tratamento conservador em diálise.", "id": "4A-404", "idade": "91 anos 4 meses", "imc": "20.3", "itemAvulso": "", "lab": "05/11 U:55.0 CR: 3.99", "leito": "404", "liqEsp": "", "na": "3", "nome": "LUCIA MARIA HORBACH FAIRON", "nrs": "2 - SEM RISCO", "obsGeral": "700 ml dia - 140 refeições - cdm, alm, lan, jan e ceia.", "obsLeito": "", "peso": "54", "pi": "65.09", "plantao": "07/11- Mantém RH 1000/24h (700ml em 5 etapas de 140ml), não inicio suplementação ureia e creatina alteradas. Ajusto dieta para sem resíduos conforme estava nas observações da prescrição médica.\n08/11 - Sem intercorrências.", "po": "", "preferencias": "", "proxEvol": "2026-11-11", "proxReav": "2026-11-10", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "319691", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "1350 kcal (25 kcal/kg) e 64,8 g de proteína (1,2 g/kg)"}, {"ac": "50%", "adm": "2026-05-28", "alergias": "CARNE BOVINA, SUCO DE CAJU, SUCO DE GOAIBA, SUCO DE MARACUJÁ , IODO", "altura": "149", "bloqueios": "ABOBRINHA", "classIMC": "Excesso de peso", "controle": "", "di": "DESCORFORTO PRECORDIAL E DIARRÉIA", "dieta": "DIETA ENTERAL", "done": {"evol": null}, "edit": {"proxEvol": "2026-11-09"}, "filiacao": "Neomesia Ferreira", "flag": false, "hda": "Braden: Risco alto", "hpp": "- Obesidade - HAS - Pneumopatia crônica pós COVID - Hipotireoidismo", "id": "4A-405", "idade": "84 anos 9 meses", "imc": "39.6", "itemAvulso": "", "lab": "03/06 K:4.5 P:4.0 CR:1.20 TX:45 U:44", "leito": "405", "liqEsp": "", "na": "3", "nome": "EUNICE FERREIRA CALDAS", "nrs": "5 - COM RISCO", "obsGeral": "", "obsLeito": "", "peso": "88", "pi": "54.39", "plantao": "NRS >>>>>>>>> MENSAL\n08/11 - TNE exclusiva", "po": "", "preferencias": "", "proxEvol": "2026-11-09", "proxReav": "2026-11-26", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "295563", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "03/06 ausentes", "vet": "FRESUBIN HP ENERGY 1000ML, CNE, 1000 ml, OBS: 45 ML/H -"}, {"ac": "", "adm": "2026-11-01", "alergias": "", "altura": "155", "bloqueios": "CREME DE MAMÃO , MAMÃO , MINGAU", "classIMC": "Magreza", "controle": "Precaução Respiratória", "di": "Pneumonia broncoaspirativa?", "dieta": "DIETA ENTERAL, DIETA ZERO", "filiacao": "Julia Netto de Castro", "flag": false, "hda": "dispnéia, dessaturação", "hpp": "HAS, ARRITMIA CARDÍACA, AVC", "id": "4A-406", "idade": "97 anos 11 meses", "imc": "20.8", "itemAvulso": "", "lab": "", "leito": "406", "liqEsp": "", "na": "3", "nome": "LUCILIA DE CASTRO CHAMOUN", "nrs": "4 - COM RISCO", "obsGeral": "dieta líquida espessada em pudim - apenas 100 mL por etapa", "obsLeito": "", "peso": "50", "pi": "58.86", "plantao": "08/11 - TNE exclusiva.", "po": "", "preferencias": "", "proxEvol": "2026-11-10", "proxReav": "2026-11-15", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "320477", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "FRESUBIN ORIGINAL 1000ML, SNE, 500 ml, 23 ml/h -"}, {"ac": "", "adm": "2026-10-29", "alergias": "", "altura": "157", "bloqueios": "CAFÉ, CAFÉ E LEITE , LEITE (PREFERÊNCIA )", "classIMC": "Magreza", "controle": "Paciente Preenche Cardápio", "di": "Confusão mental - avanço de doença", "dieta": "SEMILÍQUIDA", "filiacao": "Arlete Bahiense de Albuquerque", "flag": false, "hda": "portadora de síndrome demencial avançada, apresentando rebaixamento de nível de consciência e dessaturação.", "hpp": "Síndrome demencial avançada por Doença de Alzheimer", "id": "4A-407", "idade": "76 anos 7 meses", "imc": "17.4", "itemAvulso": "", "lab": "", "leito": "407", "liqEsp": "liquidos espessados em nectar", "na": "3", "nome": "ELIANE BAHIENSE DE ALBUQUERQUE", "nrs": "3 - COM RISCO", "obsGeral": "- Açúcar e Adoçante", "obsLeito": "", "peso": "43", "pi": "60.39", "plantao": "06/11: Paciente com baixa aceitação,tem aceitado melhor apenas ( iogurte / agua de coco e nutridrink ) .\n07/11 - Permanece com baixa aceitação, em uso de suplementação.\n08/11 - Sem intercorrências.", "po": "", "preferencias": "com suco", "proxEvol": "2026-11-10", "proxReav": "2026-11-12", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "319933", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "25kcal e 1,2g"}, {"ac": "", "adm": "2026-09-30", "alergias": "", "altura": "166", "bloqueios": "AÇUCAR (DM), EMBUTIDOS (HAS), GORDURA (DAC)", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "Mal star / AVC ISQUEMICO", "dieta": "DIETA ENTERAL, LÍQUIDA", "filiacao": "Lucy Amaral Cassiano", "flag": false, "hda": "", "hpp": "DOENÇA CORONARIANA / DM/ HAS/ DLP/ DOENÇA PERIFERICA / SINDROME DEMENCIAL", "id": "4A-408", "idade": "76 anos", "imc": "26.1", "itemAvulso": "", "lab": "", "leito": "408", "liqEsp": "liquidos finos", "na": "3", "nome": "NICOLAU CASSIANO NETO", "nrs": "3 - COM RISCO", "obsGeral": "** porções pequenas ** SOMENTE TESTE FONO Adoçante", "obsLeito": "", "peso": "72", "pi": "67.51", "plantao": "07/11 - próx reav quinzenal.\n07/11 - Realizou teste fono de SL, porém permanece em TNE exclusiva.\n08/11 - Sem intercorrências. TNE exclusiva", "po": "", "preferencias": "gosta de : pera in natura, suco de melancia, tilápia .", "proxEvol": "2026-11-15", "proxReav": "2026-11-21", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "315418", "restDieta": "AÇUCAR (DM), EMBUTIDOS (HAS), GORDURAS ( DAC )", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "FRESUBIN HP ENERGY 1000ML 1800 kcal 86.4 grs"}, {"ac": "", "adm": "2026-11-08", "alergias": "FRUTOS DO MAR, IODO, QUEIJOS", "altura": "160", "bloqueios": "", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "Choque séptico urinário (Fungemia)", "dieta": "LÍQUIDA DIABETES HIPOSSÓDICA", "filiacao": "Severina da Silva Sousa", "flag": false, "hda": "Há cerca de 3 dias com dor abdominal e prostração, além de piora de padrão ventilatório.", "hpp": "- HAS - DAC > 03 stents - DM - Parkinson - ICFEP - MP definitivo - DPOC ?", "id": "4A-409", "idade": "92 anos 2 meses", "imc": "23.4", "itemAvulso": "", "lab": "", "leito": "409", "liqEsp": "NÉCTAR", "na": "3", "nome": "MARIA APARECIDA DE SOUZA CAIADO", "nrs": "3 - COM RISCO", "obsGeral": "", "obsLeito": "", "peso": "60", "pi": "62.72", "plantao": "08/11 - Sem pendencias. Acompanhante entra em contato com sobrinha para entender alergia a queijo, disse que paciente come queijo mussarela porém não aceita outros. - Iniciar SNO, não inicio hoje em comum acordo com ac. pois paciente está muito sonolenta.", "po": "", "preferencias": "", "proxEvol": "2026-11-11", "proxReav": "2026-11-15", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321588", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "25kcal e 1,2g"}, {"ac": "", "adm": "2026-11-05", "alergias": "", "altura": "153", "bloqueios": "AÇÚCAR ( DM ), EMBUTIDOS (HAS), GORDURA (DLP)", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "PNM", "dieta": "PASTOSA DIABETES HIPOSSÓDICA", "filiacao": "Maria Luiza de Oliveira Gomes", "flag": false, "hda": "", "hpp": "HAS, DLP, SD demencial, DM", "id": "4A-410", "idade": "97 anos 1 meses", "imc": "26", "itemAvulso": "", "lab": "", "leito": "410", "liqEsp": "", "na": "3", "nome": "MARIA RITA VILLARINO", "nrs": "3 - COM RISCO", "obsGeral": "- Adoçante", "obsLeito": "", "peso": "61", "pi": "57.35", "plantao": "08/11 - Sem apontamentos.", "po": "", "preferencias": "", "proxEvol": "2026-11-11", "proxReav": "2026-11-12", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "321051", "restDieta": "", "setor": "4A", "sno": "Café da Manhã: NUTRIDRINK PÓ SEM SABOR OBS: batido com minagau aveia Lanche da Tarde: NUTRIDRINK PÓ SEM SABOR OBS: batido com vitamina banana", "soColuna1": false, "ufi": "", "vet": "1525 kcal (25 kcal/kg) e proteínas: 73,2 g (1,2 g/kg)."}, {"id": "4A-411", "leito": "411", "setor": "4A", "vazio": true}, {"id": "4A-412", "leito": "412", "setor": "4A", "vazio": true}, {"ac": "", "adm": "2026-10-27", "alergias": "", "altura": "168", "bloqueios": "IRRITANTES GÁSTRICOS", "classIMC": "Eutrofia", "controle": "Paciente Preenche Cardápio", "di": "OSTEOMIELITE COLUNA", "dieta": "SEMILÍQUIDA", "filiacao": "Heine Costa Soares", "flag": true, "hda": "", "hpp": "NEGA", "id": "4A-413", "idade": "50 anos 6 meses", "imc": "19.8", "itemAvulso": "", "lab": "", "leito": "413", "liqEsp": "", "na": "3", "nome": "VANESSA SOARES LANZIOTTI", "nrs": "3 - COM RISCO", "obsGeral": "sem irritantes gastricos e laxativa ofertar líquidos gelados Açúcar e Adoçante", "obsLeito": "Recomendado", "peso": "56", "pi": "61.25", "plantao": "27/10- Dieta branda após as 18h, marco as refeições com o esposo Luiz Lanzellotti.\n30/10: Assistida, dieta ajustada para laxativa, MA coloca em prescrição envio de coq laxativo,a tarde paciente referiu estar nauseada.\n03/11: Paciente com baixa aceitação alimentar,dieta involuida para líquida,MA está avaliando início de NPT de acordo com a resposta da paciente ,reavalio paciente e coloco em RN.\n05/11- Paciente com baixa aceitação alimentar, dieta líquida converso com a irmã que relata paciente vai ligar.\n06/11- Paciente criteriosa, combino suplementação nutridrink compact chocolate (so toma gelado), gan cicatrização batido com milkshake de chocolate. Hoje se recusou a marcar jantar alegando inapetencia e gastroparesia e preferiu suplemento jantar.\n07/11 - Dieta evolui para pastosa, ajusto refeições com pac. MA solicita 2x gan e 2x nut. compact protein.\n08/11 - Dra. Renata informa episódio de êmese após consumir dieta pastosa, disse que evoluíram muito rápido a dieta, solicita involução para dieta semilíquida, ajusto cardápio com paciente. Oriento-a sobre dieta. Pede para enviar o GAN diretamente ao leito.", "po": "", "preferencias": "", "proxEvol": "2026-11-11", "proxReav": "2026-11-10", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "319655", "restDieta": "", "setor": "4A", "sno": "Colação : GAN CICATRIZAÇÃO SACHÊ 35 GRAMAS (1) OBS: Enviar o sachê para o leito. Lanche da Tarde: GAN CICATRIZAÇÃO SACHÊ 35 GRAMAS OBS: Enviar o sachê para o leito.", "soColuna1": false, "ufi": "", "vet": ""}, {"ac": "", "adm": "2026-01-07", "alergias": "", "altura": "160", "bloqueios": "", "classIMC": "Eutrofia", "controle": "", "di": "(28/01) Fratura de fêmur direito/(29/01) Artroplastia de quadril D", "dieta": "DIETA ENTERAL", "filiacao": "Maria de Godoy Jaguaribe", "flag": false, "hda": "(31/01) FA | Traqueobronquite (03/02): Pneumonia (17/02): Derrame Pericárdico 06/02: Delirium hipoativo 08/03: derrame pleural bilateral 25/03 : Reinterna por rebaixamento de sensorio > hiponatremia Braden: risco moderado", "hpp": "HAS / DM Por PREFERENCIA / DEMENCIA", "id": "4A-414", "idade": "95 anos 4 meses", "imc": "24.9", "itemAvulso": "WHEY PROTEIN ISOLATE 15G (1) OBS: VIA GTT - 18H", "lab": "", "leito": "414", "liqEsp": "LÍQUIDOS ESPESSADOS em mel", "na": "3", "nome": "ROBERTO DE GODOY JAGUARIBE", "nrs": "5 - COM RISCO", "obsGeral": "*** via oral apenas com fono ** Açúcar e Adoçante", "obsLeito": "", "peso": "64", "pi": "62.72", "plantao": "NRS >>>> MENSAL\n08/11- TNE exclusiva", "po": "", "preferencias": "ovos mexidos capuccino yopro morango mingau de maisena com canela canja vitamina de abacate ou morango manga", "proxEvol": "2026-11-11", "proxReav": "2026-11-13", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "275088", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "FRESUBIN HP ENERGY 1000ML, GTT, 1000 ml, OBS: 32 ML/H VET FINAL PROPOSTO - 1400 KCAL VET PRESCRITO - 1650 KCAL PTN PRESCRITA - 61,5g/kg"}, {"id": "4A-415", "leito": "415", "setor": "4A", "vazio": true}, {"ac": "", "adm": "2026-10-27", "alergias": "ALHO", "altura": "164", "bloqueios": "EMBUTIDOS (HAS)", "classIMC": "Excesso de peso", "controle": "", "di": "cansaço", "dieta": "DIETA ENTERAL, LÍQUIDA", "filiacao": "Nelcina Goncalves Ciuffo", "flag": true, "hda": "", "hpp": "HAS HIPOTIROIDISMO ITU DE REPETIÇÃO ALZHEIMER DOENÇA PULMONAR FIBROSCENTE", "id": "4A-416", "idade": "86 anos 8 meses", "imc": "30.8", "itemAvulso": "", "lab": "", "leito": "416", "liqEsp": "", "na": "3", "nome": "JANE CIUFFO FAVER", "nrs": "6 - COM RISCO", "obsGeral": "VO apenas teste fono Açúcar e Adoçante", "obsLeito": "Recomendado", "peso": "83", "pi": "65.9", "plantao": "08/11: Paciente segue em TNE exclusiva, sem intercorrencias.", "po": "", "preferencias": "", "proxEvol": "2026-11-11", "proxReav": "2026-11-13", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "319496", "restDieta": "", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "FRESUBIN HP ENERGY 1000ML, SNE, 1000 ml, 45 ml/h -"}, {"id": "4A-417", "leito": "417", "setor": "4A", "vazio": true}, {"ac": "", "adm": "2026-09-29", "alergias": "", "altura": "194", "bloqueios": "GORDURA (DAC)", "classIMC": "Sobrepeso", "controle": "Paciente Preenche Cardápio", "di": "-Estenose de esôfago torácico - Trombose do segmento na veia jugular + sugestiva de fistula esôfago-brônquica", "dieta": "DIETA ENTERAL", "done": {"evol": "2026-11-09"}, "edit": {"proxEvol": "2026-11-12"}, "filiacao": "Maria Jose Bravo Colly", "flag": false, "hda": "", "hpp": "DAC, Neo de pulmão", "id": "4A-418", "idade": "50 anos 8 meses", "imc": "25.5", "itemAvulso": "", "lab": "", "leito": "418", "liqEsp": "", "na": "3", "nome": "OLEGARIO MACIEL COLLY FILHO", "nrs": "3 - COM RISCO", "obsGeral": "- Açúcar e Adoçante", "obsLeito": "", "peso": "96", "pi": "81.67", "plantao": "08/11 - Sem intercorrências.", "po": "", "preferencias": "", "prev": {"evol": {"d": "2026-11-09", "dia": "2026-11-09"}}, "proxEvol": "2026-11-09", "proxReav": "2026-11-13", "refAcomp": "Almoço, Café da Manhã, Jantar", "registro": "315215", "restDieta": "SURVIMED OPN HN EASY BAG 500 ML", "setor": "4A", "sno": "", "soColuna1": false, "ufi": "", "vet": "VET PROPOSTO EMTN: 2400 kcal e proteína proposta: 48g"}], "setores": ["1A", "3B", "4A"], "updatedAt": 1794227244065}, "adm-r321695": {"altura": "", "criadoEm": 1794222226259, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Katia Vilela Rezende Yanagihara", "fotos": [], "id": "r321695", "idade": "39 anos", "kcalKg": 25, "leito": "104", "mapId": "1A-104@2026-11-09", "nome": "MICHELLE REZENDE YANAGIHARA", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321695", "setor": "1A", "updatedAt": 1794222226523, "via": "oral"}, "adm-r321706": {"altura": "", "criadoEm": 1794222226260, "dataAval": "2026-11-09", "dia": "2026-11-09", "doMapa": true, "filiacao": "Xinhua Liu", "fotos": [], "id": "r321706", "idade": "49 anos 9 meses", "kcalKg": 25, "leito": "111", "mapId": "1A-111@2026-11-09", "nome": "PEI CAO", "nrsEstado": null, "nrsGrav": null, "peso": "", "ptnKg": 1.2, "registro": "321706", "setor": "1A", "updatedAt": 1794222226526, "via": "oral"}, "adm-r321663": {"altura": "64", "ccHora": "14:07", "criadoEm": 1794222226260, "dataAval": "2026-11-09", "dia": "2026-11-09", "diagnostico": "Hemorroidectomia", "dietaLibCons": "Zero", "dietaLibHora": "08:28", "doMapa": true, "filiacao": "Anadir Peixoto Ferreira", "fotos": [], "hora": "08:26", "hpp": "DM, dlp", "id": "r321663", "idade": "61 anos 2 meses", "kcalKg": 25, "leito": "110", "mapId": "1A-110@2026-11-09", "nivelManual": 1, "nome": "ADRIANA PEIXOTO FERREIRA", "nrsEstado": null, "nrsGrav": null, "peso": "96", "ptnKg": 1.2, "registro": "321663", "setor": "1A", "updatedAt": 1794223753073, "via": "oral"}};
+  const LS = 'mapa-nutri-v1';
+  try {
+    const cur = JSON.parse(localStorage.getItem(LS) || '{}');
+    for (const [k, v] of Object.entries(SEED)) if (!cur[k] || (v.updatedAt || 0) > (cur[k].updatedAt || 0)) cur[k] = v;
+    localStorage.setItem(LS, JSON.stringify(cur));
+  } catch(e){ console.warn('seed failed', e); }
+})();
+</script>
+<header class="top" id="top"></header>
+<main id="main"></main>
+<nav class="nav" aria-label="Seções"><div class="in">
+  <button id="tab-mapa" data-tab="mapa"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v16"/></svg><span>Mapa<span id="pill-mapa"></span></span></button>
+  <button id="tab-pend" data-tab="pend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Pendências<span id="pill-pend"></span></span></button>
+  <button id="tab-adm" data-tab="adm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v8M8 12h8"/><rect x="3" y="3" width="18" height="18" rx="3"/></svg><span>Admissões<span id="pill-adm"></span></span></button>
+</div></nav>
+<input type="file" id="pdfin" accept="application/pdf" hidden>
+<input type="file" id="imgin" accept="image/*" multiple hidden>
+<div id="sheet-root"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+// Map PDF parser — shared by the app (browser) and the node test.
+// Expects a pdf.js namespace (pdfjsLib) and an ArrayBuffer/Uint8Array.
+(function (root) {
+  const COLS_FALLBACK = [28, 113, 227, 298, 369, 439, 510, 567, 680, 822];
+  const COL_KEYS = ['leito', 'diag', 'dieta', 'triagem', 'tn', 'bloq', 'alerg', 'pref', 'plantao'];
+
+  function mul(m, n) {
+    return [m[0]*n[0]+m[2]*n[1], m[1]*n[0]+m[3]*n[1], m[0]*n[2]+m[2]*n[3], m[1]*n[2]+m[3]*n[3], m[0]*n[4]+m[2]*n[5]+m[4], m[1]*n[4]+m[3]*n[5]+m[5]];
+  }
+  function apply(m, x, y) { return [m[0]*x+m[2]*y+m[4], m[1]*x+m[3]*y+m[5]]; }
+
+  async function pageRects(pdfjs, page) {
+    const OPS = pdfjs.OPS; const rects = [];
+    try {
+      const ol = await page.getOperatorList();
+      let ctm = [1,0,0,1,0,0]; const stack = [];
+      for (let i = 0; i < ol.fnArray.length; i++) {
+        const fn = ol.fnArray[i], a = ol.argsArray[i];
+        if (fn === OPS.save) stack.push(ctm.slice());
+        else if (fn === OPS.restore) ctm = stack.pop() || [1,0,0,1,0,0];
+        else if (fn === OPS.transform) ctm = mul(ctm, a);
+        else if (fn === OPS.constructPath) {
+          const ops = a[0], args = a[1]; let k = 0;
+          for (const op of ops) {
+            if (op === OPS.rectangle) {
+              const [x, y, w, h] = args.slice(k, k + 4); k += 4;
+              const p1 = apply(ctm, x, y), p2 = apply(ctm, x + w, y + h);
+              rects.push({ x0: Math.min(p1[0], p2[0]), x1: Math.max(p1[0], p2[0]), y0: Math.min(p1[1], p2[1]), y1: Math.max(p1[1], p2[1]) });
+            } else if (op === OPS.moveTo || op === OPS.lineTo) k += 2;
+            else if (op === OPS.curveTo) k += 6;
+            else if (op === OPS.curveTo2 || op === OPS.curveTo3) k += 4;
+          }
+        }
+      }
+    } catch (e) { /* fall back */ }
+    return rects;
+  }
+
+  function cellLines(items) {
+    items.sort((a, b) => b.y - a.y || a.x - b.x);
+    const lines = [];
+    for (const it of items) {
+      const last = lines[lines.length - 1];
+      if (last && Math.abs(last.y - it.y) < 2.5) last.parts.push(it); else lines.push({ y: it.y, parts: [it] });
+    }
+    return lines.map(l => l.parts.sort((a, b) => a.x - b.x).map(p => p.s).join(' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  }
+
+  async function parseMapPdf(pdfjs, data) {
+    const doc = await pdfjs.getDocument({ data }).promise;
+    const rows = []; let mapDate = null; const setores = new Set();
+    for (let p = 1; p <= doc.numPages; p++) {
+      const page = await doc.getPage(p);
+      const tc = await page.getTextContent();
+      const items = tc.items.filter(i => i.str && i.str.trim()).map(i => ({ s: i.str, x: i.transform[4], y: i.transform[5] }));
+      let setor = '';
+      const title = cellLines(items.filter(i => i.y > 520)).join(' ');
+      const tm = title.match(/-\s*([0-9A-Z]{1,4})\s*-\s*(\d{2})\/(\d{2})\/(\d{4})/);
+      if (tm) { setor = tm[1]; mapDate = mapDate || `${tm[4]}-${tm[3]}-${tm[2]}`; setores.add(setor); }
+      let rects = (await pageRects(pdfjs, page)).filter(r => r.x1 - r.x0 > 20 && r.y1 - r.y0 > 10);
+      // columns from rect x positions
+      let xs = [...new Set(rects.map(r => Math.round(r.x0)))].sort((a, b) => a - b);
+      let cols = xs.length >= 9 ? xs.slice(0, 9).concat([Math.round(Math.max(...rects.map(r => r.x1)))]) : COLS_FALLBACK;
+      // rows: rect bands sorted top-down; first band is header
+      let bands = [];
+      for (const r of rects) {
+        if (Math.round(r.x0) !== cols[0]) continue;
+        bands.push({ top: r.y1, bot: r.y0 });
+      }
+      bands.sort((a, b) => b.top - a.top);
+      if (bands.length) bands = bands.slice(1); // drop header
+      if (!bands.length) {
+        // fallback: anchor rows on 3-digit bed numbers in col 0
+        const anchors = items.filter(i => i.x < cols[1] && /^\d{3,4}$/.test(i.s.trim()) && i.y < 480).sort((a, b) => b.y - a.y);
+        anchors.forEach((a, k) => bands.push({ top: k ? (anchors[k-1].y + a.y) / 2 : 480, bot: anchors[k+1] ? (a.y + anchors[k+1].y) / 2 : 0 }));
+      }
+      for (const b of bands) {
+        const cells = {};
+        COL_KEYS.forEach((key, c) => {
+          cells[key] = cellLines(items.filter(i => i.y <= b.top + 1 && i.y >= b.bot - 1 && i.x >= cols[c] - 1 && i.x < cols[c + 1] - 1));
+        });
+        if (!cells.leito.length && !cells.plantao.length) continue;
+        // continuation of a row split across pages (no bed number)
+        const bedLine = cells.leito.find(l => /^\d{3,4}[A-Z]?$/.test(l));
+        if (!bedLine && rows.length) {
+          const prev = rows[rows.length - 1];
+          COL_KEYS.forEach(k => prev.raw[k] = prev.raw[k].concat(cells[k]));
+          continue;
+        }
+        rows.push({ setor, raw: cells });
+      }
+    }
+    return { mapDate, setores: [...setores], patients: rows.map(r => toPatient(r)).filter(Boolean) };
+  }
+
+  const dash = v => (!v || /^-+$/.test(v.trim()) ? '' : v.trim());
+  function grab(text, label, stops) {
+    const re = new RegExp(label + '\\s*:?\\s*([\\s\\S]*?)(?=' + (stops.length ? stops.join('|') + '|' : '') + '$)', 'i');
+    const m = text.match(re); return m ? dash(m[1].replace(/\s+/g, ' ')) : '';
+  }
+  function brDate(s) { const m = (s || '').match(/(\d{2})\/(\d{2})\/(\d{2,4})/); if (!m) return ''; const y = m[3].length === 2 ? '20' + m[3] : m[3]; return `${y}-${m[2]}-${m[1]}`; }
+
+  function parseDiag(D) {
+    const o = {};
+    const stopsD = ['HDA:', 'HPP:', 'Contrl:', 'Refeição acompanhante:', 'Di:', 'PO '];
+    const has = /\b(Di|HDA|HPP|Contrl):/.test(D);
+    o.di = grab(D, 'Di:', stopsD.filter(s => s !== 'Di:'));
+    o.hda = grab(D, 'HDA:', stopsD.filter(s => s !== 'HDA:'));
+    o.hpp = grab(D, 'HPP:', stopsD.filter(s => s !== 'HPP:')).replace(/^HPP:\s*/i, '');
+    o.po = (D.match(/\b(PO [^:]*?)(?= HPP:| HDA:| Contrl:|$)/) || [])[1] || '';
+    o.controle = grab(D, 'Contrl:', ['Refeição acompanhante:']);
+    o.refAcomp = grab(D, 'Refeição acompanhante:', []);
+    if (!has && !o.di) o.di = dash(D);
+    return o;
+  }
+
+  function toPatient(r) {
+    const L = r.raw.leito; const lt = L.join('\n');
+    const bedIdx = L.findIndex(l => /^\d{3,4}[A-Z]?$/.test(l));
+    if (bedIdx < 0) return null;
+    const leito = L[bedIdx];
+    const flag = L.some(l => l.includes('*'));
+    // name: lines after bed until "Filiação" / "- (" / "Registro"
+    const nameParts = [];
+    for (let i = bedIdx + 1; i < L.length; i++) { if (/^(Filia|- \(|\(|Registro|-$|-,)/.test(L[i]) || /\(\d+ anos/.test(L[i])) break; nameParts.push(L[i]); }
+    const nome = dash(nameParts.join(' ').replace(/\*/g, ' ').replace(/\s+/g, ' '));
+    const flat = L.join(' ');
+    const p = {
+      id: r.setor + '-' + leito, setor: r.setor, leito, flag, nome,
+      filiacao: grab(flat, 'Filiação', ['- \\(', '\\(\\d', 'Registro']),
+      idade: (flat.match(/\((\d+ anos?(?: \d+ m[eê]s(?:es)?)?)\)/) || [])[1] || '',
+      registro: dash((flat.match(/Registro:\s*(\S+)/) || [])[1] || ''),
+      peso: (flat.match(/([\d.,]+)\s*Kg,/i) || [])[1] || '',
+      altura: (flat.match(/([\d.,]+)\s*cm/i) || [])[1] || '',
+      imc: (flat.match(/IMC:\s*([\d.,]+)/) || [])[1] || '',
+      pi: (flat.match(/P\.I:\s*([\d.,]+)/) || [])[1] || '',
+      classIMC: '', obsLeito: ''
+    };
+    const after = flat.split(/P\.I:\s*[\d.,-]+\s*Kg?/i)[1] || '';
+    const ex = after.trim().split(/\s(?=\()/);
+    p.classIMC = dash(ex[0] || ''); p.obsLeito = (after.match(/\(([^)]+)\)\s*$/) || [])[1] || '';
+    if (!p.nome) return { id: p.id, setor: p.setor, leito, vazio: true };
+    Object.assign(p, parseDiag(r.raw.diag.join(' ')));
+    const Dt = r.raw.dieta.join(' ');
+    p.dieta = dash((Dt.split(/\s(?:Rest:|Obs\. Geral:)/)[0].replace(/^Dieta:\s*/i, '')).replace(/\s*-\s*$/, ''));
+    p.restDieta = grab(Dt, 'Rest:', ['Obs\\. Geral:']);
+    p.obsGeral = grab(Dt, 'Obs\\. Geral:', []);
+    const T = r.raw.triagem.join(' ');
+    const ts = ['N\\.A:', 'Adm:', 'Prox\\. Evol:', 'Prox\\. Reav:'];
+    p.nrs = grab(T, 'NRS:', ts);
+    p.na = (T.match(/N\.A:\s*(\d)/) || [])[1] || '';
+    p.adm = brDate(grab(T, 'Adm:', ts.slice(2)));
+    p.proxEvol = brDate(grab(T, 'Prox\\. Evol:', ['Prox\\. Reav:']));
+    p.proxReav = brDate(grab(T, 'Prox\\. Reav:', []));
+    const N = r.raw.tn.join(' ');
+    const ns = ['SNO:', 'Item Avulso:', 'Líq\\. Espess\\.:', 'Rest:', 'AC:', 'UFI:', 'Lab:'];
+    p.vet = dash(N.split(/\s?(?:SNO:|Item Avulso:|Líq\. Espess\.:|Rest:|AC:|UFI:|Lab:)/)[0]);
+    p.sno = grab(N, 'SNO:', ns.filter(s => s !== 'SNO:'));
+    p.itemAvulso = grab(N, 'Item Avulso:', ns.filter(s => s !== 'Item Avulso:'));
+    p.liqEsp = grab(N, 'Líq\\. Espess\\.:', ns.filter(s => !s.startsWith('Líq')));
+    p.ac = grab(N, 'AC:', ns.filter(s => s !== 'AC:'));
+    p.ufi = grab(N, 'UFI:', ns.filter(s => s !== 'UFI:'));
+    p.lab = grab(N, 'Lab:', []);
+    p.bloqueios = dash(r.raw.bloq.join(' '));
+    p.alergias = dash(r.raw.alerg.join(' '));
+    p.preferencias = dash(r.raw.pref.join(' '));
+    p.plantao = dash(r.raw.plantao.join('\n').replace(/\n(?!\d{2}\/\d{2}|\d{2}\/\d{2})/g, ' '));
+    // only the first column filled (labels and dashes don't count) = new admission
+    // "Contrl" and "Refeição acompanhante" are filled at hospital admission, so they don't count
+    const resto = [p.di, p.hda, p.hpp].concat(['dieta','triagem','tn','bloq','alerg','pref','plantao'].map(k => r.raw[k].join(' '))).join(' ');
+    p.soColuna1 = !resto.replace(/[A-Za-zÀ-ÿ.()\/ ]{1,30}:/g, ' ').replace(/[-–—\s]/g, '');
+    return p;
+  }
+
+  root.MapParser = { parseMapPdf, toPatient, parseDiag };
+  if (typeof module !== 'undefined') module.exports = root.MapParser;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function(){
+'use strict';
+// ---------- utils ----------
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const todayISO = () => iso(new Date());
+const addDays = (isoD, n) => { const [y,m,d] = isoD.split('-').map(Number); return iso(new Date(y, m-1, d + n)); };
+const br = isoD => { if (!isoD) return '—'; const [y,m,d] = isoD.split('-'); return `${d}/${m}`; };
+const brFull = isoD => { if (!isoD) return ''; const [y,m,d] = isoD.split('-'); return `${d}/${m}/${y}`; };
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isFinite(n) ? n : null; };
+const fmt1 = n => n == null ? '' : (Math.round(n * 10) / 10).toFixed(1).replace('.', ',');
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const weekday = isoD => { const [y,m,d] = isoD.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'long'}); };
+const bedSort = (a, b) => String(a.leito).localeCompare(String(b.leito), 'pt', { numeric:true });
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2000); }
+async function copyText(text, btn){
+  try { await navigator.clipboard.writeText(text); }
+  catch(e){
+    const ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    let ok = false; try { ok = document.execCommand('copy'); } catch(_){}
+    ta.remove(); if (!ok) { toast('Não consegui copiar. Selecione o texto e copie manualmente.'); return; }
+  }
+  if (btn){ const o = btn.textContent; btn.textContent = 'Copiado'; btn.classList.add('done'); setTimeout(() => { btn.textContent = o; btn.classList.remove('done'); }, 1300); }
+  else toast('Copiado');
+}
+
+// ---------- clinical rules (Guia de bolso Copa Star) ----------
+const EVOL_DIAS = {1:7, 2:5, 3:3};
+const NIVEL_NOME = {1:'Primário', 2:'Secundário', 3:'Terciário'};
+function idadeAnos(txt, nasc){
+  if (nasc){ const [y,m,d] = nasc.split('-').map(Number); const t = new Date(); let a = t.getFullYear() - y; if (t.getMonth()+1 < m || (t.getMonth()+1 === m && t.getDate() < d)) a--; return a; }
+  const m = String(txt||'').match(/(\d+)/); return m ? +m[1] : null;
+}
+function imcInfo(peso, alturaCm, idade){
+  const p = num(peso), h = num(alturaCm); if (!p || !h) return {};
+  const m = h > 3 ? h / 100 : h; const imc = p / (m*m);
+  const idoso = idade != null && idade >= 60;
+  let cls;
+  if (idoso) cls = imc < 22 ? 'Magreza' : imc < 27 ? 'Eutrofia' : 'Excesso de peso';
+  else cls = imc < 18.5 ? 'Baixo peso' : imc < 25 ? 'Eutrofia' : imc < 30 ? 'Sobrepeso' : imc < 35 ? 'Obesidade 1' : imc < 40 ? 'Obesidade 2' : 'Obesidade 3';
+  return { imc, cls, pi: (idoso ? 24.5 : 21.7) * m * m, idoso };
+}
+function andarFechado(leito, setor){ const s = String(setor || leito || '').trim(); return /^[145]/.test(s); }
+function nivelSugerido(a){
+  const why = [];
+  const idade = idadeAnos(a.idade, a.nasc);
+  if (/enteral|parenteral/i.test(a.via || '')) why.push('terapia enteral/parenteral');
+  if (idade != null && idade < 18) why.push('menor de 18 anos');
+  if (andarFechado(a.leito, a.setor)) why.push('setor fechado (1º, 4º ou 5º andar)');
+  if (why.length) return { n:3, why };
+  const s = nrsScore(a);
+  if (s != null && s >= 3) why.push('NRS ≥ 3 (com risco)');
+  if (a.cancer) why.push('câncer');
+  if (a.hiv) why.push('HIV positivo');
+  if (why.length) return { n:2, why };
+  return { n:1, why:['sem risco nutricional'] };
+}
+function nrsScore(a){
+  if (a.nrsEstado == null && a.nrsGrav == null) return null;
+  const idade = idadeAnos(a.idade, a.nasc);
+  return (a.nrsEstado || 0) + (a.nrsGrav || 0) + (idade != null && idade >= 70 ? 1 : 0);
+}
+const nrsTexto = s => s == null ? '' : `${s} - ${s >= 3 ? 'COM RISCO' : 'SEM RISCO'}`;
+const NRS_ESTADO = [
+  [0,'Normal','Estado nutricional normal'],
+  [1,'Leve','Perda de peso > 5% em 3 meses OU ingestão 50–75% da necessidade na última semana'],
+  [2,'Moderado','Perda > 5% em 2 meses OU IMC 18,5–20,5 + estado geral comprometido OU ingestão 25–50%'],
+  [3,'Grave','Perda > 5% em 1 mês (>15% em 3 meses) OU IMC < 18,5 + estado geral comprometido OU ingestão 0–25%']
+];
+const NRS_GRAV = [
+  [0,'Ausente','Necessidades nutricionais normais'],
+  [1,'Leve','Fratura de quadril, crônicos com complicação aguda (cirrose, DPOC), hemodiálise, diabetes, oncologia'],
+  [2,'Moderada','Cirurgia abdominal de grande porte, AVC, pneumonia grave, neoplasia hematológica'],
+  [3,'Grave','Trauma craniano, TMO, paciente em UTI (APACHE > 10)']
+];
+
+// ---------- map categorisation ----------
+// A bed that has only name/registro/age (no diagnosis, diet, screening or handover) is a new admission.
+// "Cadastro Fictício": real patient registered by reception without parents' names / birth date.
+const isFicticio = p => /cadastro\s+fict/i.test(p.filiacao || '');
+function isBlankAdmission(p){
+  if (p.vazio || !p.nome || p.naoAdmissao) return false;
+  if (p.soColuna1) return true;
+  // fallback: no diagnosis, diet, NRS or handover (admission date, level and dates may already be filled)
+  return !p.di && !p.hda && !p.hpp && !p.dieta && !parseInt(p.nrs) && !p.plantao;
+}
+// Every admission-looking bed of the active day gets a card in Admissões (unless you removed it).
+function syncAdmissions(day){
+  if (!day || S.example) return 0; let n = 0; day.admIgnoradas = day.admIgnoradas || [];
+  for (const p of day.patients){
+    if (isHidden(p) || p.outroNutri || p.alta || day.admIgnoradas.includes(p.id)) continue;
+    if (p.admissao || isBlankAdmission(p)){ if (!p.admissao){ p.admissao = true; n++; } if (!admForBed(p)){ admFromMap(p, day); n++; } }
+  }
+  return n;
+}
+// Visit pending: last handover entry flagged "pendência de visita" and no later day-shift entry; night entries don't count as a visit.
+function pendFromPlantao(txt){
+  if (!txt) return false;
+  let pend = false;
+  for (const line of String(txt).split('\n')){
+    const l = line.trim(); if (!l) continue;
+    if (/pend[eêé]ncia\s*(de\s*)?visita|pend\.?\s*visita/i.test(l)) pend = true;
+    else if (!/noturn/i.test(l)) pend = false;
+  }
+  return pend;
+}
+function cat(p, ref){
+  const d = (p.dieta || '') + ' ' + (p.vet || '');
+  const c = {};
+  c.zero = /\bZERO\b|JEJUM/i.test(p.dieta || '');
+  c.tne = /ENTERAL|\bTNE\b|\bSNE\b|\bSNG\b|\bGTT\b|\bSOE\b|\bGEP\b/i.test(d);
+  c.tnp = /PARENTERAL|\bNPT\b|\bTNP\b/i.test(d);
+  c.sup = !!(p.sno || p.itemAvulso);
+  c.tn = c.tne || c.tnp; // terapia nutricional = enteral ou parenteral
+  const n = parseInt(p.na); c.nivel = [1,2,3].includes(n) ? n : null;
+  c.n1 = c.nivel === 1; c.n2 = c.nivel === 2; c.n3 = c.nivel === 3;
+  const nr = parseInt(p.nrs); c.risco = isFinite(nr) ? nr >= 3 : null;
+  const ev = p.proxEvol, rv = p.proxReav;
+  const valid = x => x && x >= '2020-01-01' && x <= addDays(ref, 400);
+  c.evolLate = valid(ev) && ev < ref; c.evolToday = ev === ref;
+  c.reavLate = valid(rv) && rv < ref; c.reavToday = rv === ref;
+  c.late = c.evolLate || c.reavLate; c.today = !c.late && (c.evolToday || c.reavToday);
+  c.admissao = !!p.admissao || isBlankAdmission(p);
+  c.outro = !!p.outroNutri;
+  const visited = p.done && p.done.visita === ref;
+  if (visited || p.pendManual === 'no-' + ref) c.pend = false;
+  else if (p.pendManual === ref) c.pend = true;
+  else c.pend = !c.admissao && pendFromPlantao(p.plantao); // admissions are visited anyway
+  // another nutritionist's patient: shown in the map, but counts for nothing of yours
+  if (c.outro) for (const key of ['late','today','zero','tn','tne','tnp','sup','risco','pend','admissao','n1','n2','n3','evolLate','evolToday','reavLate','reavToday']) c[key] = false;
+  return c;
+}
+function eff(p){ return Object.assign({}, p, p.edit || {}); }
+// For filters/counts: a bed ticked today as Evoluído/Reavaliado keeps the dates it had before the tick, so it stays in the same tab (just shown as checked).
+function effFiltro(p){ const e = eff(p); const ref = todayISO(); const d = p.done || {}; const pv = p.prev || {};
+  if (d.evol === ref && pv.evol && pv.evol.dia === ref) e.proxEvol = pv.evol.d;
+  if (d.reav === ref && pv.reav && pv.reav.dia === ref) e.proxReav = pv.reav.d;
+  if (d.visita === ref) e.done = Object.assign({}, d, { visita: null }); // visited beds stay counted/listed as pending visits (checked)
+  return e; }
+// Day indicator: how many beds you ticked today.
+function feitosHoje(list, ref){ const o = { visita:0, evol:0, reav:0 }; for (const p of list || []){ if (isHidden(p) || p.vazio || p.alta || p.outroNutri) continue; const d = p.done || {}; for (const k in o) if (d[k] === ref) o[k]++; } return o; }
+
+// ---------- storage: private db per user, localStorage as local copy ----------
+const LS = 'mapa-nutri-v1';
+const store = {
+  db: null, uid: null, q: {}, busy: {},
+  lsAll(){ try { return JSON.parse(localStorage.getItem(LS) || '{}'); } catch(e){ return {}; } },
+  lsPut(key, val){ try { const a = this.lsAll(); if (val === null) delete a[key]; else a[key] = val; localStorage.setItem(LS, JSON.stringify(a)); } catch(e){} },
+  async init(){
+    if (!window.claude || !window.claude.use) return;
+    try {
+      const [user, db] = await Promise.all([window.claude.use('user'), window.claude.use('db')]);
+      if (user && db){ this.uid = await user.id(); this.db = db; }
+    } catch(e){ this.db = null; }
+  },
+  col(){ return this.db.collection('data/users/' + this.uid); },
+  async loadAll(){
+    const out = this.lsAll();
+    if (!this.db) return out;
+    try {
+      const snap = await Promise.race([this.col().get(), new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))]);
+      const remote = {}; snap.docs.forEach(d => { if (d.exists) remote[d.id] = JSON.parse(JSON.stringify(d.data())); }); // snapshots are frozen: work on copies
+      for (const k of Object.keys(remote)){ if (!out[k] || (remote[k].updatedAt || 0) >= (out[k].updatedAt || 0)) out[k] = remote[k]; }
+      for (const k of Object.keys(out)){ if (!remote[k]) this.put(k, out[k], true); }
+      return out;
+    } catch(e){ return out; }
+  },
+  put(key, val, quiet){
+    if (val && !quiet) val.updatedAt = Date.now();
+    this.lsPut(key, val);
+    if (!this.db) return;
+    this.q[key] = val; clearTimeout(this['t' + key]);
+    this['t' + key] = setTimeout(() => this.flush(key), quiet ? 50 : 300);
+  },
+  async flush(key){
+    if (this.busy[key]) { this['t' + key] = setTimeout(() => this.flush(key), 400); return; }
+    if (!(key in this.q)) return;
+    const val = this.q[key]; delete this.q[key]; this.busy[key] = true;
+    try { const ref = this.col().doc(key); if (val === null) await ref.delete(); else await ref.set(JSON.parse(JSON.stringify(val))); }
+    catch(e){ console.warn('save failed', key, e); }
+    this.busy[key] = false;
+  }
+};
+
+// ---------- state ----------
+const S = {
+  tab: 'mapa', days: {}, cur: null, notes: {}, adm: {}, example: false,
+  settings: { hidden: [], outros: {} },
+  f: { status: 'todos', cats: new Set(), nivel: new Set(), setor: new Set(), q: '' },
+  admF: 'hoje',
+  sample: null, sampleImages: false, sampleMax: 4
+};
+try { const v = JSON.parse(localStorage.getItem(LS + '-ui') || '{}'); if (v.tab) S.tab = v.tab; } catch(e){}
+const saveUI = () => { try { localStorage.setItem(LS + '-ui', JSON.stringify({ tab: S.tab })); } catch(e){} };
+const dayKey = d => 'map-' + d;
+function saveDay(){ if (S.example || !S.cur) return; store.put(dayKey(S.cur), S.days[S.cur]); }
+function saveNotes(){ if (S.example) return; store.put('notes', { map: S.notes }); }
+function saveSettings(){ if (S.example) return; store.put('settings', S.settings); }
+function saveAdm(a){ if (a.exemplo) return; store.put('adm-' + a.id, a); }
+const isHidden = p => S.settings.hidden.includes(p.id);
+function curDay(){ return S.cur ? S.days[S.cur] : null; }
+// Only show the active map on the day it belongs to; after midnight the map goes to the history.
+function activeDay(){ const d = curDay(); if (!d) return null; if (S.example || d.date === todayISO() || S.viewingOld === d.date) return d; return null; }
+
+// ---------- example (fictional) ----------
+function exampleDay(){
+  const t = todayISO();
+  const P = (o) => Object.assign({ setor:'2A', filiacao:'', registro:'', peso:'', altura:'', imc:'', pi:'', classIMC:'', di:'', hda:'', hpp:'', controle:'', dieta:'', restDieta:'', obsGeral:'', sno:'', itemAvulso:'', liqEsp:'', ac:'', ufi:'', lab:'', bloqueios:'', alergias:'', preferencias:'', plantao:'', vet:'', nrs:'', na:'', adm:'', proxEvol:'', proxReav:'', flag:false, obsLeito:'' }, o);
+  const pts = [
+    P({ id:'2A-201', leito:'201', nome:'PACIENTE EXEMPLO A', idade:'71 anos', registro:'000101', peso:'58', altura:'160', di:'PO colectomia', dieta:'DIETA ENTERAL', vet:'Peptamen 1.5, SNE, 1000 ml/dia', nrs:'4 - COM RISCO', na:'3', adm:addDays(t,-6), proxEvol:addDays(t,-1), proxReav:addDays(t,1), plantao:`${br(addDays(t,-1))}: TNE em progressão, meta 50 ml/h.` }),
+    P({ id:'2A-202', leito:'202', nome:'PACIENTE EXEMPLO B', idade:'54 anos', registro:'000102' }),
+    P({ id:'2A-203', leito:'203', nome:'PACIENTE EXEMPLO C', idade:'60 anos', registro:'000103', peso:'82', altura:'176', di:'Colecistectomia', dieta:'DIETA ZERO', nrs:'1 - SEM RISCO', na:'1', adm:t, proxEvol:addDays(t,7), proxReav:addDays(t,7), plantao:`${br(t)}: Noturno: admito em zero, pré-op. Pendência de visita.` }),
+    P({ id:'2A-205', leito:'205', nome:'PACIENTE EXEMPLO D', idade:'83 anos', registro:'000105', peso:'49', altura:'155', di:'Pneumonia', hpp:'HAS, DM', dieta:'PASTOSA DIABETES', sno:'Lanche da tarde: suplemento hiperproteico (1)', nrs:'3 - COM RISCO', na:'2', adm:addDays(t,-5), proxEvol:t, proxReav:addDays(t,2), alergias:'CAMARÃO' }),
+    P({ id:'2B-224', setor:'2B', leito:'224', nome:'PACIENTE EXEMPLO E', idade:'38 anos', registro:'000124', peso:'70', altura:'168', di:'Apendicectomia', dieta:'BRANDA', nrs:'0 - SEM RISCO', na:'1', adm:addDays(t,-2), proxEvol:addDays(t,5), proxReav:addDays(t,5) }),
+    { id:'2B-225', setor:'2B', leito:'225', vazio:true },
+    P({ id:'2B-226', setor:'2B', leito:'226', nome:'PACIENTE EXEMPLO F', idade:'66 anos', registro:'000126', peso:'95', altura:'170', di:'Neoplasia gástrica', dieta:'LÍQUIDA', itemAvulso:'Módulo proteico (2)', nrs:'3 - COM RISCO', na:'2', adm:addDays(t,-9), proxEvol:addDays(t,-2), proxReav:addDays(t,-2) })
+  ];
+  return { date: t, setores:['2A','2B'], patients: pts, example: true };
+}
+
+// ---------- header ----------
+function counts(list, ref){
+  const c = { late:0, today:0, zero:0, tn:0, tne:0, sup:0, risco:0, n1:0, n2:0, n3:0, total:0, pend:0, admissao:0, outro:0, vagos:0 };
+  for (const p0 of list){ if (isHidden(p0)) continue; if (p0.vazio || p0.alta){ c.vagos++; continue; } const k = cat(effFiltro(p0), ref); if (k.outro){ c.outro++; continue; } c.total++; for (const key of ['late','today','zero','tn','tne','sup','risco','pend','admissao','n1','n2','n3']) if (k[key]) c[key]++; }
+  return c;
+}
+function renderTop(){
+  const top = $('#top');
+  if (S.tab === 'adm') return renderAdmTop(top);
+  if (S.tab === 'pend') return renderPendTop(top);
+  const day = activeDay();
+  const ref = todayISO();
+  if (!day){
+    top.innerHTML = `<div class="wrap"><div class="toprow"><h1>Mapa<small>${brFull(ref)} · ${esc(weekday(ref))}</small></h1></div></div>`;
+    return;
+  }
+  const c = counts(day.patients, ref);
+  const F = S.f;
+  const chip = (key, label, n, set) => `<button class="chip" data-chip="${key}" aria-pressed="${set ? 'true' : 'false'}">${label}${n != null ? `<span class="c">${n}</span>` : ''}</button>`;
+  const stat = (key, cls, n, label) => `<button class="${cls}" data-status="${key}" aria-pressed="${F.status === key}"><b>${n}</b><span>${label}</span></button>`;
+  top.innerHTML = `<div class="wrap">
+    <div class="toprow">
+      <h1>Mapa ${esc(day.setores.join(' · '))}<small>${S.example ? 'Exemplo fictício' : `${brFull(day.date)}${day.date !== ref ? ' · histórico' : ''} · ${c.total} pacientes`}${(() => { const f = feitosHoje(day.patients, ref); return ` · <b style="color:var(--ok)">Hoje: ${f.evol} evol · ${f.reav} reav · ${f.visita} visit</b>`; })()}</small></h1>
+      <button class="btn sm" id="btn-leitos" aria-label="Meus leitos">Leitos</button>
+      <button class="btn sm" id="btn-mapas">Mapas</button>
+    </div>
+    <div class="sum sum4" role="group" aria-label="Resumo do dia">
+      <button class="tot" data-status="todos" aria-pressed="${F.status === 'todos'}"><b>${c.total}</b><span>Total</span></button>
+      ${stat('pend','pend',c.pend,'Pend. visita')}${stat('late','late',c.late,'Atrasadas')}${stat('today','today',c.today,'Evol/reav hoje')}
+      ${stat('zero','zero',c.zero,'Zero')}${stat('tn','tn',c.tn,'TNE / TNP')}${stat('sup','tn',c.sup,'Suplemento')}${stat('admissao','',c.admissao,'Admissões')}
+      ${stat('n3','',c.n3,'3º Terciário')}${stat('n2','',c.n2,'2º Secundário')}${stat('n1','',c.n1,'1º Primário')}${stat('risco','late',c.risco,'Com risco')}
+    </div>
+    <div class="toprow"><input class="search" id="q" type="search" placeholder="Buscar nome, leito, dieta, diagnóstico" value="${esc(F.q)}" aria-label="Buscar"></div>
+    <div class="chips" role="group" aria-label="Filtros">
+      ${day.setores.length > 1 ? day.setores.map(s => chip('set:' + s, s, null, F.setor.has(s))).join('') + '<span class="sep"></span>' : ''}
+      ${chip('cat:tne','Só TNE',c.tne,F.cats.has('tne'))}${chip('cat:tnesup','TNE + suplemento',null,F.cats.has('tnesup'))}
+      <span class="sep"></span>${chip('cat:outro','Outro nutri',c.outro,F.cats.has('outro'))}${chip('cat:vazio','Vagos',c.vagos,F.cats.has('vazio'))}
+      ${(F.status !== 'todos' || F.cats.size || F.nivel.size || F.setor.size || F.q) ? '<button class="chip" data-chip="clear">Limpar ✕</button>' : ''}
+    </div>
+  </div>`;
+  $('#btn-mapas').onclick = openMapas;
+  $('#btn-leitos').onclick = openLeitos;
+  top.querySelectorAll('[data-status]').forEach(b => b.onclick = () => { S.f.status = S.f.status === b.dataset.status || b.dataset.status === 'todos' ? 'todos' : b.dataset.status; render(); });
+  top.querySelectorAll('[data-chip]').forEach(b => b.onclick = () => {
+    const [k, v] = b.dataset.chip.split(':');
+    if (k === 'clear'){ S.f = { status:'todos', cats:new Set(), nivel:new Set(), setor:new Set(), q:'' }; }
+    else if (k === 'cat') S.f.cats.has(v) ? S.f.cats.delete(v) : S.f.cats.add(v);
+    else if (k === 'niv') S.f.nivel.has(+v) ? S.f.nivel.delete(+v) : S.f.nivel.add(+v);
+    else if (k === 'set') S.f.setor.has(v) ? S.f.setor.delete(v) : S.f.setor.add(v);
+    render();
+  });
+  const q = $('#q'); if (q) q.oninput = () => { S.f.q = q.value; renderMain(); };
+}
+
+// ---------- map list (ascending by bed, split by sector) ----------
+function passes(p, k){
+  const F = S.f;
+  const vago = p.vazio || p.alta;
+  if (vago) return (F.cats.has('vazio') || (F.status === 'todos' && !F.cats.size && !F.nivel.size)) && !F.q;
+  if (F.cats.has('vazio') && F.cats.size === 1 && F.status === 'todos') return false;
+  if (F.status !== 'todos' && !k[F.status]) return false;
+  const cats = [...F.cats].filter(c => c !== 'vazio');
+  if (cats.length && !cats.every(c => c === 'tnesup' ? (k.tne && k.sup) : !!k[c])) return false;
+  if (F.nivel.size && !F.nivel.has(k.nivel)) return false;
+  if (F.q){ const q = F.q.toLowerCase(); const hay = [p.leito, p.nome, p.dieta, p.di, p.hda, p.hpp, p.registro, p.alergias, p.nutriNome].join(' ').toLowerCase(); if (!hay.includes(q)) return false; }
+  return true;
+}
+function badgesFor(p, k){
+  const b = [];
+  if (k.pend) b.push('<span class="b lvl">Pendência de visita</span>');
+  if (k.admissao) b.push('<span class="b today">Admissão</span>');
+  if (k.evolLate) b.push('<span class="b late">Evolução atrasada</span>');
+  if (k.reavLate) b.push('<span class="b late">Reavaliação atrasada</span>');
+  if (!k.late && k.evolToday) b.push('<span class="b today">Evoluir hoje</span>');
+  if (!k.late && k.reavToday) b.push('<span class="b today">Reavaliar hoje</span>');
+  if (k.zero) b.push('<span class="b zero">Zero</span>');
+  if (k.tne) b.push('<span class="b tn">TNE</span>');
+  if (k.tnp) b.push('<span class="b tn">TNP</span>');
+  if (k.sup) b.push('<span class="b tn">Suplemento</span>');
+  if (k.risco === true) b.push('<span class="b risk">NRS ' + esc(parseInt(p.nrs)) + '</span>');
+  if (k.nivel) b.push(`<span class="b">${k.nivel}º ${NIVEL_NOME[k.nivel]}</span>`);
+  if (p.alergias && !/^nega/i.test(p.alergias)) b.push('<span class="b late">Alergia</span>');
+  if (p.origem) b.push(`<span class="b">${esc(p.origem)}</span>`);
+  if (p.outroNutri) b.push(`<span class="b ok">Nutri: ${esc(p.nutriNome || 'outro')}</span>`);
+  return b;
+}
+function cardHTML(p0){
+  const p = eff(p0); const ref = todayISO(); const k = cat(p, ref);
+  const note = (S.notes[p.registro || p.id] || '').trim();
+  const t = p0.done || {};
+  const dcls = (late, today) => late ? 'late' : today ? 'today' : '';
+  const badges = badgesFor(p, k);
+  const idadeTxt = isFicticio(p) && /^1[2-9]\d anos/.test(p.idade || '') ? 'idade não cadastrada' : p.idade;
+  return `<article class="card ${k.admissao ? 'adm' : k.late ? 'late' : k.today ? 'today' : ''}" data-id="${esc(p0.id)}">
+    <span class="stripe"></span>
+    <button class="card-h" data-open="${esc(p0.id)}" aria-label="Abrir leito ${esc(p.leito)}">
+      <div class="bed">${esc(p.leito)}<small>${esc(p.setor || '')}</small></div>
+      <div class="who"><div class="n">${esc(p.nome)}</div><div class="m">${esc([idadeTxt, p.peso && p.altura ? `${p.peso} kg · ${p.altura} cm` : '', p.di].filter(Boolean).join(' · '))}</div></div>
+      <div class="dates">${k.admissao ? '<span class="d today">ADMISSÃO</span>' : ''}${p.proxEvol || p.proxReav ? `<span class="d ${dcls(k.evolLate, k.evolToday)}">Ev ${br(p.proxEvol)}</span><span class="d ${dcls(k.reavLate, k.reavToday)}">Rv ${br(p.proxReav)}</span>` : ''}</div>
+      <div class="diet">${esc(p.dieta || (k.admissao ? 'Admissão: dados ainda não preenchidos' : 'Sem dieta registrada'))}</div>
+      ${badges.length ? `<div class="badges">${badges.join('')}</div>` : ''}
+    </button>
+    ${note ? `<div class="note-peek">${esc(note.length > 180 ? note.slice(0, 180) + '…' : note)}</div>` : ''}
+    ${p.outroNutri ? '' : `<div class="done-row">
+      ${['visita:Visitado', 'evol:Evoluído', 'reav:Reavaliado'].map(s => { const [key, lab] = s.split(':'); return `<button class="tick" data-tick="${key}" aria-pressed="${t[key] === ref}"><span class="box">${t[key] === ref ? '✓' : ''}</span>${lab}</button>`; }).join('')}
+      ${k.admissao ? `<button class="tick" data-goadm="${esc(p0.id)}" style="color:var(--accent)">Abrir admissão ›</button>` : `<button class="tick" data-toadm="${esc(p0.id)}">→ Admissão</button>`}
+    </div>`}
+  </article>`;
+}
+function vagoHTML(p0){
+  const alta = p0.alta ? `Alta de ${esc(eff(p0).nome)}` : 'Vago';
+  return `<div class="vago" data-id="${esc(p0.id)}"><span class="bed">${esc(p0.leito)}</span><span>${alta}</span><span class="row">${p0.alta ? `<button class="btn sm ghost" data-desfazer-alta="${esc(p0.id)}">Desfazer</button>` : ''}<button class="btn sm" data-ocupar="${esc(p0.id)}">Ocupar</button></span></div>`;
+}
+function renderUpload(main){
+  const ref = todayISO();
+  const days = Object.keys(S.days).filter(d => !S.days[d].example).sort().reverse();
+  main.innerHTML = `<div class="wrap">
+    <section class="hero-up"><h2>Mapa de ${brFull(ref)}</h2><p>Baixe o PDF "Mapa Nutrição Clínica" do sistema e carregue aqui. Se o 2A e o 2B vierem em arquivos separados, carregue os dois: eles se juntam no mesmo dia.</p>
+      <div class="row"><button class="btn primary" id="up-pdf"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v12M6 10l6 6 6-6M4 20h16"/></svg>Carregar PDF do mapa</button>${days.length ? '' : '<button class="btn" id="up-ex">Ver exemplo</button>'}</div></section>
+    ${days.length ? `<div class="group-h">Histórico</div><section class="sec">${days.map(d => histRow(d)).join('')}</section>` : ''}
+  </div>`;
+  $('#up-pdf').onclick = () => $('#pdfin').click();
+  const ex = $('#up-ex'); if (ex) ex.onclick = () => { S.days[ref] = exampleDay(); S.cur = ref; S.example = true; render(); };
+  bindHist(main);
+}
+function histRow(d){
+  const day = S.days[d]; const n = day.patients.filter(p => !p.vazio && !p.alta).length;
+  return `<div class="list-row" data-hist="${d}"><div><div class="t">${brFull(d)} <span style="font-weight:500;color:var(--ink-2)">· ${esc(weekday(d))}</span></div><div class="s">${esc(day.setores.join(' · '))} · ${n} pacientes</div><div class="del-slot"></div></div>
+    <div class="row"><button class="btn sm" data-hist-open="${d}">Abrir</button><button class="btn sm ghost" data-hist-del="${d}" aria-label="Apagar mapa de ${brFull(d)}">Apagar</button></div></div>`;
+}
+function bindHist(root, after){
+  root.querySelectorAll('[data-hist-open]').forEach(b => b.onclick = () => { S.cur = b.dataset.histOpen; S.viewingOld = S.cur; S.example = false; S.tab = 'mapa'; if ($('#sheet-root').firstElementChild) closeSheet(); else render(); window.scrollTo(0, 0); });
+  root.querySelectorAll('[data-hist-del]').forEach(b => b.onclick = () => {
+    const d = b.dataset.histDel; const slot = b.closest('.list-row').querySelector('.del-slot');
+    slot.innerHTML = `<div class="confirm" style="margin-top:6px"><span>Apagar o mapa de ${brFull(d)}?</span><button class="btn sm" type="button">Apagar</button><button class="btn sm ghost" type="button">Cancelar</button></div>`;
+    const [yes, no] = slot.querySelectorAll('button');
+    yes.onclick = () => { delete S.days[d]; store.put(dayKey(d), null); if (S.cur === d){ S.cur = null; S.viewingOld = null; } toast('Mapa apagado'); after ? after() : render(); };
+    no.onclick = () => slot.innerHTML = '';
+  });
+}
+function renderMap(){
+  const main = $('#main');
+  const day = activeDay();
+  if (!day) return renderUpload(main);
+  const ref = todayISO();
+  let html = '';
+  if (S.example) html += `<div class="banner"><span>Pacientes fictícios para você ver como funciona.</span><button class="btn sm" id="ex-off">Sair do exemplo</button></div>`;
+  else if (day.date !== ref) html += `<div class="banner"><span>Mapa de ${brFull(day.date)} (histórico). Prazos comparados com hoje.</span><button class="btn sm" id="hist-off">Mapa de hoje</button></div>`;
+  const visible = day.patients.filter(p => !isHidden(p));
+  const hiddenN = day.patients.length - visible.length;
+  let any = false;
+  for (const setor of day.setores.length ? day.setores : ['']){
+    const rows = visible.filter(p => !setor || p.setor === setor).sort(bedSort).filter(p => passes(eff(p), p.vazio || p.alta ? {} : cat(effFiltro(p), ref)));
+    if (!rows.length) continue; any = true;
+    const ativos = rows.filter(p => !p.vazio && !p.alta).length;
+    html += `<div class="setor-h">${esc(setor || 'Leitos')} <span>${ativos} paciente${ativos === 1 ? '' : 's'}</span></div>`;
+    html += rows.map(p => p.vazio || p.alta ? vagoHTML(p) : cardHTML(p)).join('');
+  }
+  if (!any) html += `<div class="empty">Nenhum paciente com esses filtros.</div>`;
+  if (hiddenN) html += `<button class="btn ghost sm" id="show-hidden" style="align-self:center">${hiddenN} leito${hiddenN > 1 ? 's' : ''} fora da sua lista · gerenciar</button>`;
+  main.innerHTML = `<div class="wrap">${html}</div>`;
+  const ex = $('#ex-off'); if (ex) ex.onclick = () => { delete S.days[S.cur]; S.example = false; S.cur = null; S.adm = Object.fromEntries(Object.entries(S.adm).filter(([, a]) => !a.exemplo)); render(); };
+  const ho = $('#hist-off'); if (ho) ho.onclick = () => { S.viewingOld = null; S.cur = S.days[ref] ? ref : null; render(); };
+  const sh = $('#show-hidden'); if (sh) sh.onclick = openLeitos;
+  bindCards(main, day);
+}
+function bindCards(main, day){
+  const ref = todayISO();
+  main.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openPatient(b.dataset.open));
+  main.querySelectorAll('[data-ocupar]').forEach(b => b.onclick = () => openOcupar(b.dataset.ocupar));
+  main.querySelectorAll('[data-toadm]').forEach(b => b.onclick = () => { const p = day.patients.find(x => x.id === b.dataset.toadm); marcarAdmissao(p, day, true); });
+  main.querySelectorAll('[data-goadm]').forEach(b => b.onclick = () => { const p = day.patients.find(x => x.id === b.dataset.goadm); const a = admForBed(p) || admFromMap(p, day); openAdm(a); });
+  main.querySelectorAll('[data-desfazer-alta]').forEach(b => b.onclick = () => { const p = day.patients.find(x => x.id === b.dataset.desfazerAlta); delete p.alta; saveDay(); render(); toast('Alta desfeita'); });
+  main.querySelectorAll('[data-tick]').forEach(b => b.onclick = () => {
+    const id = b.closest('[data-id]').dataset.id; const p = day.patients.find(x => x.id === id); const key = b.dataset.tick;
+    p.done = p.done || {}; const on = p.done[key] === ref; p.done[key] = on ? null : ref;
+    if (on && (key === 'evol' || key === 'reav')){
+      const f = key === 'evol' ? 'proxEvol' : 'proxReav'; const pv = (p.prev || {})[key];
+      if (pv && pv.dia === ref){ p.edit = p.edit || {}; if (pv.v == null) delete p.edit[f]; else p.edit[f] = pv.v; delete p.prev[key]; toast(key === 'evol' ? 'Evolução desmarcada, data anterior restaurada' : 'Reavaliação desmarcada, data anterior restaurada'); }
+    }
+    if (!on && (key === 'evol' || key === 'reav')){
+      const e = eff(p); const lvl = parseInt(e.na) || 1; p.edit = p.edit || {};
+      const f = key === 'evol' ? 'proxEvol' : 'proxReav'; p.prev = p.prev || {}; p.prev[key] = { dia: ref, v: p.edit[f], d: e[f] };
+      if (key === 'evol') p.edit.proxEvol = addDays(ref, EVOL_DIAS[lvl] || 7);
+      if (key === 'reav') p.edit.proxReav = addDays(ref, reavIntervalo(e, ref));
+      toast(key === 'evol' ? `Próxima evolução: ${brFull(p.edit.proxEvol)}` : `Próxima reavaliação: ${brFull(p.edit.proxReav)}`);
+    }
+    saveDay(); render();
+  });
+}
+function reavIntervalo(p, ref){
+  if (!p.adm) return 7;
+  const dias = (new Date(ref) - new Date(p.adm)) / 864e5;
+  return dias > 60 ? 30 : dias > 30 ? 15 : 7;
+}
+
+// ---------- pendências ----------
+function renderPendTop(top){
+  const day = activeDay(); const ref = todayISO();
+  const n = day ? counts(day.patients, ref).pend : 0;
+  top.innerHTML = `<div class="wrap"><div class="toprow"><h1>Pendências de visita<small>${brFull(ref)} · ${n} leito${n === 1 ? '' : 's'}${day ? ` · <b style="color:var(--ok)">${feitosHoje(day.patients, ref).visita} visitado(s) hoje</b>` : ''}</small></h1></div></div>`;
+}
+function lastPendLine(txt){
+  const lines = String(txt || '').split('\n').map(s => s.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0; i--) if (/pend/i.test(lines[i])) return lines[i];
+  return lines[lines.length - 1] || '';
+}
+function renderPend(){
+  const main = $('#main'); const day = activeDay(); const ref = todayISO();
+  if (!day){ main.innerHTML = `<div class="wrap"><div class="empty">Carregue o mapa de hoje para ver as pendências de visita.<button class="btn primary" id="pd-go">Ir para o mapa</button></div></div>`; $('#pd-go').onclick = () => { S.tab = 'mapa'; saveUI(); render(); }; return; }
+  const list = day.patients.filter(p => !isHidden(p) && !p.vazio && !p.alta).filter(p => cat(effFiltro(p), ref).pend).sort(bedSort);
+  const feitos = [];
+  let html = '';
+  if (!list.length) html += `<div class="empty"><b>Nenhuma pendência de visita</b><span>Os leitos marcados como "pendência de visita" na passagem de plantão e as admissões novas aparecem aqui.</span></div>`;
+  for (const setor of day.setores){
+    const g = list.filter(p => p.setor === setor); if (!g.length) continue;
+    html += `<div class="setor-h">${esc(setor)} <span>${g.length}</span></div>`;
+    html += g.map(p0 => { const p = eff(p0); const k = cat(p, ref);
+      return `<article class="pend-card" data-id="${esc(p0.id)}"><div class="bed">${esc(p.leito)}<small>${esc(p.setor)}</small></div>
+        <div class="who"><div class="n">${esc(p.nome)}</div><div class="m">${esc([p.idade, p.dieta].filter(Boolean).join(' · '))}</div></div>
+        <div class="why">${k.admissao && !p.plantao ? 'Admissão nova: sem dados no mapa ainda.' : esc(p.pendManual === ref ? 'Marcado por você' : lastPendLine(p.plantao))}</div>
+        <div class="act">${(() => { const v = (p0.done || {}).visita === ref; return `<button class="tick" data-tick="visita" aria-pressed="${v}"><span class="box">${v ? '✓' : ''}</span>Visitado</button>`; })()}<button class="btn sm" data-open="${esc(p0.id)}">Abrir</button>${k.admissao ? `<button class="btn sm" data-goadm="${esc(p0.id)}">Admissão</button>` : ''}</div></article>`; }).join('');
+  }
+  if (feitos.length) html += `<div class="group-h">Visitados hoje · ${feitos.length}</div><section class="sec">${feitos.map(p => `<div class="list-row"><div><div class="t">${esc(p.leito)} · ${esc(eff(p).nome)}</div></div><button class="btn sm ghost" data-undo-visit="${esc(p.id)}">Desfazer</button></div>`).join('')}</section>`;
+  main.innerHTML = `<div class="wrap">${html}</div>`;
+  bindCards(main, day);
+  main.querySelectorAll('[data-undo-visit]').forEach(b => b.onclick = () => { const p = day.patients.find(x => x.id === b.dataset.undoVisit); p.done.visita = null; saveDay(); render(); });
+}
+
+// ---------- patient sheet ----------
+const MAP_FIELDS = [
+  ['Identificação', [['nome','Nome'],['idade','Idade'],['registro','Registro'],['peso','Peso (kg)','n'],['altura','Altura (cm)','n']]],
+  ['Triagem e prazos', [['nrs','NRS'],['na','Nível de assistência (1, 2, 3)','n'],['proxEvol','Próx. evolução','d'],['proxReav','Próx. reavaliação','d']]],
+  ['Diagnóstico', [['di','Diagnóstico de internação','t'],['hda','HDA','t'],['hpp','HPP','t'],['lab','Laboratório','t']]],
+  ['Dieta e terapia nutricional', [['dieta','Prescrição dietética','t'],['obsGeral','Observação geral','t'],['restDieta','Restrições','t'],['vet','VET e proteína / TNE','t'],['sno','Suplemento (SNO)','t'],['itemAvulso','Item avulso','t'],['liqEsp','Líquidos espessados']]],
+  ['Paciente', [['alergias','Alergias','t'],['bloqueios','Bloqueios','t'],['preferencias','Preferências e aversões','t']]]
+];
+function fieldHTML(id, label, type, val, copy){
+  const cp = copy ? `<span class="sp"></span><button class="cp" data-copy="${id}" type="button">Copiar</button>` : '';
+  if (type === 't') return `<div class="f"><label for="f-${id}">${label}${cp}</label><textarea id="f-${id}" data-k="${id}" rows="2">${esc(val)}</textarea></div>`;
+  if (type === 'd') return `<div class="f"><label for="f-${id}">${label}${cp}</label><input id="f-${id}" data-k="${id}" type="date" value="${esc(val)}"></div>`;
+  if (type === 'n') return `<div class="f"><label for="f-${id}">${label}${cp}</label><input id="f-${id}" data-k="${id}" inputmode="decimal" value="${esc(val)}"></div>`;
+  return `<div class="f"><label for="f-${id}">${label}${cp}</label><input id="f-${id}" data-k="${id}" value="${esc(val)}"></div>`;
+}
+function sheet(title, bodyHTML, actionsHTML){
+  const root = $('#sheet-root');
+  root.innerHTML = `<div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+    <div class="sheet-h"><div class="wrap"><button class="btn ghost" id="sh-close" aria-label="Fechar">‹ Voltar</button><h2>${esc(title)}</h2>${actionsHTML || ''}</div></div>
+    <div class="sheet-b"><div class="wrap">${bodyHTML}</div></div></div>`;
+  document.body.style.overflow = 'hidden';
+  $('#sh-close').onclick = closeSheet;
+  return root.firstElementChild;
+}
+function closeSheet(){
+  const open = S.openAdmId && S.adm[S.openAdmId]; S.openAdmId = null;
+  if (open && !open.nome && !open.registro && !open.doMapa && admScore(open) === 0){ delete S.adm[open.id]; store.put('adm-' + open.id, null); }
+  $('#sheet-root').innerHTML = ''; document.body.style.overflow = ''; render(); }
+function admForBed(p0){
+  if (!p0) return null; const p = eff(p0);
+  return Object.values(S.adm).find(a => (p.registro && a.registro === p.registro) || a.mapId === p0.id + '@' + (S.cur || '')) || null;
+}
+const PHOTO_BOX = `<section class="photo" id="photo-box"><b>Fotos do prontuário</b><p id="ph-msg">Envie as telas que você usa: entrevista da enfermagem, escala de Braden, diagnóstico médico e admissão médica. Pode mandar várias de uma vez ou aos poucos. Só os dados úteis para a nutrição são preenchidos, e tudo continua editável.</p>
+    <div class="photo-list" id="ph-list"></div><button class="btn primary" id="ph-pick" type="button">+ Adicionar fotos</button><span class="status" id="ph-status"></span></section>`;
+// Map bed ⇄ admission card: the same patient data, kept in sync both ways.
+const LINK = [['nome','nome'],['registro','registro'],['idade','idade'],['peso','peso'],['altura','altura'],['di','diagnostico'],['hda','hda'],['hpp','hpp'],['lab','lab'],['dieta','dieta'],['alergias','alergias'],['bloqueios','bloqueios'],['preferencias','preferencias']];
+function bedOfAdm(a){
+  const p = admLeito(a); if (p) return { p, day: S.days[a.mapId.split('@')[1]] };
+  const day = curDay(); if (!day || !a.registro) return null;
+  const q = day.patients.find(x => !x.vazio && eff(x).registro === a.registro); return q ? { p: q, day } : null;
+}
+function syncAdmToMap(a){
+  const b = bedOfAdm(a); if (!b) return; const p0 = b.p; const e = eff(p0); let ch = false;
+  for (const [mk, ak] of LINK){ const v = a[ak]; if (v != null && v !== '' && v !== (e[mk] || '')){ p0.edit = p0.edit || {}; p0.edit[mk] = v; ch = true; } }
+  if (ch && !S.example) store.put(dayKey(b.day.date), b.day);
+}
+function syncMapToAdm(p0, mk, v){
+  const a = admForBed(p0); if (!a) return; const l = LINK.find(x => x[0] === mk); if (!l) return;
+  a[l[1]] = v; saveAdm(a);
+}
+function openPatient(id){
+  const day = curDay(); const p0 = day.patients.find(x => x.id === id); const p = eff(p0); const ref = todayISO();
+  const k = cat(p, ref);
+  const nk = p.registro || p.id;
+  const adm = admForBed(p0);
+  let body = '';
+  if (k.admissao) body += PHOTO_BOX;
+  body += `<section class="sec"><div class="sec-h"><h3>Situação do leito</h3></div>
+    <label class="switch"><input type="checkbox" id="sw-pend" ${k.pend ? 'checked' : ''}>Pendência de visita hoje</label>
+    <label class="switch"><input type="checkbox" id="sw-outro" ${p.outroNutri ? 'checked' : ''}>Paciente de outro nutricionista</label>
+    <div class="f" id="nutri-box" ${p.outroNutri ? '' : 'hidden'}><label for="f-nutriNome">Nutricionista responsável</label><input id="f-nutriNome" data-k="nutriNome" value="${esc(p.nutriNome || '')}" placeholder="Nome do nutri"></div>
+    <label class="switch"><input type="checkbox" id="sw-adm" ${k.admissao ? 'checked' : ''}>É admissão (aparece na aba Admissões)</label>
+    <div class="row">${k.admissao || adm ? `<button class="btn sm" id="go-adm" type="button">${adm ? 'Abrir admissão' : 'Criar admissão'}</button>` : ''}<button class="btn sm" id="btn-alta" type="button">Marcar alta</button><button class="btn sm ghost" id="btn-hide" type="button">Tirar da minha lista</button></div>
+    <div id="alta-confirm"></div></section>`;
+  body += `<section class="sec"><div class="sec-h"><h3>Anotação livre</h3><button class="cp" data-copy="__note" type="button">Copiar</button></div>
+    <div class="f"><textarea id="f-__note" rows="4" placeholder="O que conversou com o paciente: preferências, aversões, aceitação, peso referido…">${esc(S.notes[nk] || '')}</textarea>
+    <span class="hint">Para ditar, toque no microfone do teclado do iPhone. A anotação acompanha o paciente nos próximos mapas (pelo registro).</span></div></section>`;
+  body += `<section class="sec"><div class="sec-h"><h3>Passagem de plantão</h3><button class="btn sm" id="add-plantao" type="button">+ ${br(ref)}</button></div>
+    <div class="plantao">${esc(p0.plantao || 'Sem registros.')}</div>
+    <div class="f"><label for="f-plantaoNovo">Novo registro<span class="sp"></span><button class="cp" data-copy="plantaoNovo" type="button">Copiar</button></label><textarea id="f-plantaoNovo" data-k="plantaoNovo" rows="2">${esc(p.plantaoNovo || '')}</textarea></div></section>`;
+  for (const [title, fields] of MAP_FIELDS){
+    body += `<section class="sec"><div class="sec-h"><h3>${title}</h3></div>${fields.map(([kk, l, t]) => fieldHTML(kk, l, t, p[kk] || '', true)).join('')}</section>`;
+  }
+  body += `<section class="sec"><div class="sec-h"><h3>Do sistema</h3></div><div class="ro-l">Filiação</div><div class="ro">${esc(p.filiacao || '—')}</div><div class="ro-l">Controles</div><div class="ro">${esc(p.controle || '—')}</div><div class="ro-l">Admissão</div><div class="ro">${brFull(p.adm) || '—'}</div>${p0.edit && Object.keys(p0.edit).length ? '<button class="btn sm" id="undo" type="button">Desfazer minhas edições neste leito</button>' : ''}</section>`;
+  const el = sheet(`${p.leito} · ${p.nome}`, body);
+  el.querySelectorAll('[data-k]').forEach(inp => inp.addEventListener('input', () => {
+    p0.edit = p0.edit || {}; const kk = inp.dataset.k;
+    if (inp.value === (p0[kk] || '')) delete p0.edit[kk]; else p0.edit[kk] = inp.value;
+    if (kk === 'nutriNome' && p.registro){ S.settings.outros[p.registro] = inp.value; saveSettings(); }
+    syncMapToAdm(p0, kk, inp.value);
+    saveDay();
+  }));
+  if (k.admissao){
+    const a = adm || admFromMap(p0, day);
+    setupPhoto(el, a, () => {
+      saveAdm(a); syncAdmToMap(a); const e = eff(p0);
+      el.querySelectorAll('[data-k]').forEach(inp => { if (document.activeElement !== inp && inp.dataset.k in e) inp.value = e[inp.dataset.k] || ''; });
+      $('#ph-list', el).innerHTML = (a.fotos || []).map(f => `<div class="photo-item">${f.thumb ? `<img alt="" src="${f.thumb}">` : '<span></span>'}<span><b>${esc(f.tipo || 'Foto')}</b>${esc(f.resumo || '')}</span></div>`).join('');
+    });
+    $('#ph-list', el).innerHTML = (a.fotos || []).map(f => `<div class="photo-item">${f.thumb ? `<img alt="" src="${f.thumb}">` : '<span></span>'}<span><b>${esc(f.tipo || 'Foto')}</b>${esc(f.resumo || '')}</span></div>`).join('');
+  }
+  $('#sw-pend', el).onchange = e => { p0.pendManual = e.target.checked ? ref : 'no-' + ref; if (e.target.checked && p0.done) p0.done.visita = null; saveDay(); };
+  $('#sw-outro', el).onchange = e => {
+    p0.outroNutri = e.target.checked; $('#nutri-box', el).hidden = !e.target.checked;
+    if (p.registro){ if (e.target.checked) S.settings.outros[p.registro] = (p0.edit && p0.edit.nutriNome) || ''; else delete S.settings.outros[p.registro]; saveSettings(); }
+    saveDay();
+  };
+  $('#f-__note', el).addEventListener('input', e => { S.notes[nk] = e.target.value; saveNotes(); });
+  $('#add-plantao', el).onclick = () => { const ta = $('#f-plantaoNovo', el); const pre = br(ref) + ': '; if (!ta.value.startsWith(pre)) ta.value = pre + ta.value; ta.focus(); ta.dispatchEvent(new Event('input')); };
+  el.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copyText($('#f-' + b.dataset.copy, el).value, b));
+  const u = $('#undo', el); if (u) u.onclick = () => { p0.edit = {}; saveDay(); openPatient(id); toast('Edições desfeitas'); };
+  const ga = $('#go-adm', el); if (ga) ga.onclick = () => openAdm(adm || admFromMap(p0, day));
+  $('#sw-adm', el).onchange = e => { marcarAdmissao(p0, day, e.target.checked, true); openPatient(id); };
+  $('#btn-alta', el).onclick = () => {
+    const box = $('#alta-confirm', el);
+    box.innerHTML = `<div class="confirm"><span>Alta de ${esc(p.nome)}? O leito ${esc(p.leito)} fica vago.</span><button class="btn sm" type="button">Confirmar alta</button><button class="btn sm ghost" type="button">Cancelar</button></div>`;
+    const [y, n] = box.querySelectorAll('button');
+    y.onclick = () => { p0.alta = ref; saveDay(); closeSheet(); toast(`Alta marcada · leito ${p.leito} vago`); };
+    n.onclick = () => box.innerHTML = '';
+  };
+  $('#btn-hide', el).onclick = () => { S.settings.hidden.push(p0.id); saveSettings(); closeSheet(); toast(`Leito ${p.leito} fora da sua lista`); };
+}
+
+// ---------- occupy a vacant bed (transfer / admission) ----------
+function openOcupar(id){
+  const day = curDay(); const slot = day.patients.find(x => x.id === id); const ref = todayISO();
+  const body = `<section class="sec"><div class="sec-h"><h3>Novo paciente no leito ${esc(slot.leito)}</h3></div>
+    <div class="f"><label>Origem</label><div class="seg" id="oc-origem"><button type="button" data-v="Transferência" aria-pressed="true">Transferência</button><button type="button" data-v="Admissão" aria-pressed="false">Admissão</button></div></div>
+    <div class="f"><label for="oc-nome">Nome do paciente</label><input id="oc-nome" autocomplete="off"></div>
+    <div class="grid2"><div class="f"><label for="oc-reg">Registro</label><input id="oc-reg" inputmode="numeric"></div><div class="f"><label for="oc-idade">Idade</label><input id="oc-idade"></div></div>
+    <label class="switch"><input type="checkbox" id="oc-outro">Paciente de outro nutricionista</label>
+    <div class="f" id="oc-nbox" hidden><label for="oc-nutri">Nutricionista responsável</label><input id="oc-nutri"></div>
+    <div class="f"><label for="oc-obs">Observação</label><textarea id="oc-obs" rows="2" placeholder="De onde veio, dieta atual, o que falta fazer"></textarea></div>
+    <div class="row"><button class="btn primary" id="oc-ok" type="button">Colocar no leito</button></div><span class="status" id="oc-msg"></span></section>`;
+  const el = sheet(`Ocupar leito ${slot.leito}`, body);
+  let origem = 'Transferência';
+  el.querySelectorAll('#oc-origem button').forEach(b => b.onclick = () => { origem = b.dataset.v; el.querySelectorAll('#oc-origem button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  $('#oc-outro', el).onchange = e => $('#oc-nbox', el).hidden = !e.target.checked;
+  $('#oc-ok', el).onclick = () => {
+    const nome = $('#oc-nome', el).value.trim(); if (!nome){ $('#oc-msg', el).textContent = 'Escreva o nome do paciente.'; return; }
+    const outro = $('#oc-outro', el).checked; const nutri = $('#oc-nutri', el).value.trim();
+    const reg = $('#oc-reg', el).value.trim(); const obs = $('#oc-obs', el).value.trim();
+    if (slot.alta){ day.altas = day.altas || []; day.altas.push(Object.assign({}, slot)); }
+    const np = { id: slot.id, setor: slot.setor, leito: slot.leito, nome: nome.toUpperCase(), registro: reg, idade: $('#oc-idade', el).value.trim(), origem, manual: true, admissao: origem === 'Admissão', outroNutri: outro, nutriNome: nutri, adm: ref,
+      plantao: `${br(ref)}: ${origem}${outro ? ' (nutri ' + (nutri || 'outro') + ')' : ''}.${obs ? ' ' + obs : ''}${outro ? '' : ' Pendência de visita.'}`, dieta:'', di:'', hda:'', hpp:'', nrs:'', na:'', proxEvol:'', proxReav:'' };
+    const i = day.patients.indexOf(slot); day.patients[i] = np;
+    if (outro && reg){ S.settings.outros[reg] = nutri; saveSettings(); }
+    saveDay();
+    if (origem === 'Admissão' && !outro){ const a = admFromMap(np, day); a.notas = obs; saveAdm(a); }
+    closeSheet(); toast(`Leito ${slot.leito}: ${nome}`);
+  };
+}
+
+// ---------- my beds ----------
+function openLeitos(){
+  const day = curDay(); if (!day) return;
+  const draw = () => {
+    let body = `<section class="sec"><div class="sec-h"><h3>Faixa de leitos</h3></div>
+      <div class="grid2"><div class="f"><label for="lr-de">Do leito</label><input id="lr-de" inputmode="numeric" placeholder="220"></div><div class="f"><label for="lr-ate">Até o leito</label><input id="lr-ate" inputmode="numeric" placeholder="225"></div></div>
+      <div class="row"><button class="btn primary" id="lr-ok" type="button">Ficar só com essa faixa</button><button class="btn" id="lr-all" type="button">Mostrar todos</button></div>
+      <span class="hint" style="font-size:12px;color:var(--ink-3)">A escolha vale para os próximos mapas também, até você mudar.</span></section>`;
+    for (const setor of day.setores){
+      const g = day.patients.filter(p => p.setor === setor).sort(bedSort);
+      body += `<section class="sec"><div class="sec-h"><h3>${esc(setor)} · toque para tirar ou incluir</h3></div><div class="bedgrid">${g.map(p => `<button type="button" data-bed="${esc(p.id)}" aria-pressed="${!isHidden(p)}">${esc(p.leito)}</button>`).join('')}</div></section>`;
+    }
+    const el = sheet('Meus leitos', body);
+    el.querySelectorAll('[data-bed]').forEach(b => b.onclick = () => {
+      const id = b.dataset.bed; const h = S.settings.hidden; const i = h.indexOf(id);
+      if (i >= 0) h.splice(i, 1); else h.push(id);
+      b.setAttribute('aria-pressed', i >= 0); saveSettings();
+    });
+    $('#lr-ok', el).onclick = () => {
+      const de = parseInt($('#lr-de', el).value), ate = parseInt($('#lr-ate', el).value);
+      if (!isFinite(de) || !isFinite(ate)) { toast('Informe os dois leitos'); return; }
+      const lo = Math.min(de, ate), hi = Math.max(de, ate);
+      S.settings.hidden = day.patients.filter(p => { const n = parseInt(p.leito); return !(n >= lo && n <= hi); }).map(p => p.id);
+      saveSettings(); draw(); toast(`Leitos ${lo} a ${hi}`);
+    };
+    $('#lr-all', el).onclick = () => { S.settings.hidden = []; saveSettings(); draw(); };
+  };
+  draw();
+}
+
+// ---------- maps / history ----------
+function openMapas(){
+  const draw = () => {
+    const days = Object.keys(S.days).filter(d => !S.days[d].example).sort().reverse();
+    const body = `<section class="hero-up"><h2>Carregar mapa</h2><p>O PDF entra no dia escrito no título do mapa. Carregar o mesmo dia de novo atualiza os dados e mantém suas edições e anotações.</p><button class="btn primary" id="mp-pdf" type="button">Carregar PDF</button></section>
+      ${days.length ? `<div class="group-h">Histórico</div><section class="sec">${days.map(histRow).join('')}</section>` : ''}`;
+    const el = sheet('Mapas', body);
+    $('#mp-pdf', el).onclick = () => $('#pdfin').click();
+    bindHist(el, draw);
+  };
+  draw();
+}
+
+// ---------- PDF import ----------
+function marcarAdmissao(p0, day, on, quiet){
+  day.admIgnoradas = day.admIgnoradas || [];
+  if (on){
+    p0.admissao = true; p0.naoAdmissao = false; day.admIgnoradas = day.admIgnoradas.filter(x => x !== p0.id);
+    const a = admForBed(p0) || admFromMap(p0, day); saveDay();
+    if (!quiet){ toast(`Leito ${p0.leito} enviado para Admissões`); render(); }
+    return a;
+  }
+  p0.admissao = false; p0.naoAdmissao = true; if (!day.admIgnoradas.includes(p0.id)) day.admIgnoradas.push(p0.id);
+  const a = admForBed(p0); if (a && a.doMapa && !a.peso && !a.diagnostico && a.nrsEstado == null){ delete S.adm[a.id]; store.put('adm-' + a.id, null); }
+  saveDay(); if (!quiet) render();
+}
+function admFromMap(p0, day){
+  const p = eff(p0);
+  const existing = Object.values(S.adm).find(a => p.registro && a.registro === p.registro);
+  if (existing) return existing;
+  const a = newAdm();
+  // fixed id per patient so two devices/loads never create two cards for the same bed
+  a.id = (p.registro ? 'r' + p.registro : 'b' + p0.id + '-' + day.date).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');
+  if (S.adm[a.id]) return S.adm[a.id];
+  Object.assign(a, { nome: p.nome, registro: p.registro, leito: p.leito, setor: p.setor, idade: p.idade, filiacao: p.filiacao || '', peso: p.peso || '', altura: p.altura || '', dia: day.date || todayISO(), dataAval: todayISO(), doMapa: true, mapId: p0.id + '@' + day.date });
+  if (S.example) a.exemplo = true;
+  S.adm[a.id] = a; saveAdm(a); return a;
+}
+$('#pdfin').addEventListener('change', async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+  if (!window.pdfjsLib){ toast('Leitor de PDF não carregou. Verifique a internet.'); return; }
+  toast('Lendo o mapa…');
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    const buf = new Uint8Array(await file.arrayBuffer());
+    const r = await MapParser.parseMapPdf(pdfjsLib, buf);
+    if (!r.patients.length) throw new Error('nenhum leito');
+    const date = r.mapDate || todayISO();
+    if (S.example){ delete S.days[S.cur]; S.example = false; S.adm = Object.fromEntries(Object.entries(S.adm).filter(([, a]) => !a.exemplo)); }
+    const old = S.days[date];
+    if (old) for (const p of r.patients){ const o = old.patients.find(x => x.id === p.id && (x.registro || '') === (p.registro || '')); if (o){ for (const k of ['edit','done','pendManual','outroNutri','alta']) if (o[k] != null) p[k] = o[k]; } }
+    for (const p of r.patients){ if (p.registro && p.registro in S.settings.outros && p.outroNutri == null){ p.outroNutri = true; p.nutriNome = S.settings.outros[p.registro]; } }
+    let patients = r.patients, setores = r.setores;
+    if (old){ const ids = new Set(r.patients.map(p => p.id)); patients = old.patients.filter(p => !ids.has(p.id)).concat(r.patients); setores = [...new Set(old.setores.concat(r.setores))].sort(); }
+    S.days[date] = { date, setores, patients, importedAt: Date.now(), altas: old && old.altas || [] };
+    S.cur = date; S.viewingOld = date === todayISO() ? null : date; saveDay();
+    // beds with only name/registro are new admissions → send to the Admissões tab
+    let novas = 0;
+    novas = syncAdmissions(S.days[date]); saveDay();
+    const n = patients.filter(p => !p.vazio).length;
+    toast(`${n} pacientes carregados${novas ? ` · ${novas} admiss${novas > 1 ? 'ões' : 'ão'} nova${novas > 1 ? 's' : ''}` : ''}`);
+    S.tab = 'mapa'; saveUI();
+    if ($('#sheet-root').firstElementChild) closeSheet(); else render();
+  } catch(err){ console.error(err); toast('Não consegui ler esse PDF. Use o PDF exportado do mapa.'); }
+});
+
+// ---------- admissions ----------
+const ADM_SECTIONS = [
+  { t:'Identificação', copyAll:false, f:[['nome','Nome completo'],['registro','Registro','n'],['leito','Leito'],['setor','Setor'],['dataInternacao','Data de internação','d'],['nasc','Data de nascimento','d'],['idade','Idade'],['sexo','Sexo','sel',['','Masculino','Feminino']]] },
+  { t:'Diagnóstico', copyAll:true, f:[['diagnostico','Diagnóstico de internação','t'],['hda','HDA','t'],['hpp','HPP','t'],['lab','Laboratório','t'],['hgt','HGT','t'],['aceitacao','Aceitação','t']] },
+  { t:'Dieta', copyAll:true, f:[['dieta','Prescrição dietética'],['obsGeral','Observação em geral','t'],['liqEsp','Líquidos espessantes'],['acucar','Açúcar / adoçante']] },
+  { t:'Restrições e preferências', copyAll:true, f:[['restricoes','Restrições','t'],['alergias','Alergias','t'],['bloqueios','Bloqueios','t'],['preferencias','Preferências','t'],['aversoes','Aversões','t']] },
+  { t:'Controle e riscos', copyAll:true, f:[['braden','Escala de Braden'],['controles','Controles (glicêmico, precauções, cardápio)','t']] },
+  { t:'Terapia nutricional', copyAll:true, f:[['tn','TNE / suplemento (fórmula, via, volume)','t']] },
+  { t:'Passagem de plantão', copyAll:false, f:[['plantao','Passagem de plantão','t']] }
+];
+function newAdm(){ const t = todayISO(); return { id: uid(), dia: t, dataAval: t, via:'oral', kcalKg: 25, ptnKg: 1.2, nrsEstado: null, nrsGrav: null, criadoEm: Date.now(), fotos: [] }; }
+function admDerived(a){
+  const idade = idadeAnos(a.idade, a.nasc);
+  const im = imcInfo(a.peso, a.altura, idade);
+  const s = nrsScore(a);
+  const sug = nivelSugerido(a);
+  const nivel = a.nivelManual || sug.n;
+  const base = a.dataAval || a.dia;
+  const proxEvol = a.proxEvolManual || addDays(base, EVOL_DIAS[nivel]);
+  const proxReav = a.proxReavManual || addDays(base, 7);
+  const p = num(a.peso);
+  const kcal = p ? Math.round(p * (a.kcalKg || 25)) : null;
+  const ptn = p ? Math.round(p * (a.ptnKg || 1.2) * 10) / 10 : null;
+  const kk = String(a.kcalKg || 25).replace('.', ','), pk = String(a.ptnKg || 1.2).replace('.', ',');
+  const vet = kcal ? `${kcal} kcal (${kk} kcal/kg) e ${String(ptn).replace('.', ',')} g de proteína (${pk} g/kg).` : '';
+  const pend = ['peso','altura','diagnostico'].filter(k => !a[k]).length + (s == null ? 1 : 0);
+  return { idade, im, s, sug, nivel, proxEvol, proxReav, vet, pend };
+}
+function admCopyValue(a, k){
+  const d = admDerived(a);
+  const map = { peso: a.peso, altura: a.altura, imc: d.im.imc ? fmt1(d.im.imc) : '', pi: d.im.pi ? fmt1(d.im.pi) : '', classificacao: d.im.cls || '', nrs: nrsTexto(d.s), nivel: d.nivel + 'º', proxEvol: brFull(d.proxEvol), proxReav: brFull(d.proxReav), vet: a.vetManual || d.vet };
+  if (k in map) return map[k] || '';
+  if (k === 'preferencias') return [a.preferencias, a.aversoes ? 'Aversões: ' + a.aversoes : ''].filter(Boolean).join(' | ');
+  return a[k] || '';
+}
+// Admissions follow the bed list you chose in the map ("Leitos").
+// ...and leave out patients you flagged as another nutritionist's.
+function admLeito(a){
+  if (!a.mapId) return null; const [pid, d] = a.mapId.split('@'); const day = S.days[d];
+  return day ? day.patients.find(x => x.id === pid && (!a.registro || !x.registro || x.registro === a.registro)) || null : null;
+}
+function admVisiveis(){
+  const h = S.settings.hidden;
+  return Object.values(S.adm).filter(a => {
+    if (a.setor && a.leito && h.includes(a.setor + '-' + a.leito)) return false;
+    if (a.registro && a.registro in S.settings.outros) return false;
+    const p = admLeito(a); if (p && p.outroNutri) return false;
+    return true;
+  });
+}
+function excluirAdm(a){
+  delete S.adm[a.id]; store.put('adm-' + a.id, null);
+  if (a.mapId){ const [pid, d] = a.mapId.split('@'); const day = S.days[d]; if (day){ const p = day.patients.find(x => x.id === pid); if (p){ p.admissao = false; p.naoAdmissao = true; } day.admIgnoradas = (day.admIgnoradas || []).concat(pid); store.put(dayKey(d), day); } }
+}
+function renderAdmTop(top){
+  const t = todayISO(); const all = admVisiveis();
+  const hoje = all.filter(a => a.dia === t); const pend = hoje.filter(a => admDerived(a).pend); const prontas = hoje.length - pend.length;
+  const stat = (key, cls, n, label) => `<button class="${cls}" data-af="${key}" aria-pressed="${S.admF === key}"><b>${n}</b><span>${label}</span></button>`;
+  top.innerHTML = `<div class="wrap"><div class="toprow"><h1>Admissões<small>${brFull(t)} · ${esc(weekday(t))}</small></h1><button class="btn primary" id="new-adm">+ Nova</button></div>
+    <div class="sum" role="group" aria-label="Admissões do dia">${stat('hoje','today',hoje.length,'Do dia')}${stat('pend','late',pend.length,'Faltando dados')}${stat('prontas','tn',prontas,'Prontas p/ SBM')}</div>
+    <div class="chips"><button class="chip" data-af="todas" aria-pressed="${S.admF === 'todas'}">Todas as datas<span class="c">${all.length}</span></button></div></div>`;
+  $('#new-adm').onclick = () => openAdm(newAdm());
+  top.querySelectorAll('[data-af]').forEach(b => b.onclick = () => { S.admF = b.dataset.af; render(); });
+}
+function renderAdmList(){
+  const main = $('#main'); const t = todayISO();
+  let all = admVisiveis().sort((x, y) => (y.dia || '').localeCompare(x.dia || '') || String(x.leito || '').localeCompare(String(y.leito || ''), 'pt', { numeric:true }));
+  if (S.admF !== 'todas') all = all.filter(a => a.dia === t);
+  if (S.admF === 'pend') all = all.filter(a => admDerived(a).pend);
+  if (S.admF === 'prontas') all = all.filter(a => !admDerived(a).pend);
+  if (!all.length){
+    main.innerHTML = `<div class="wrap"><div class="empty"><b>${S.admF === 'todas' ? 'Nenhuma admissão' : 'Nenhuma admissão aqui hoje'}</b><span>Admissões aparecem sozinhas quando o mapa traz um leito só com nome e registro. Você também pode criar uma e fotografar o prontuário.</span><button class="btn primary" id="e-new">+ Nova admissão</button></div></div>`;
+    $('#e-new').onclick = () => openAdm(newAdm()); return;
+  }
+  const byDay = {}; all.forEach(a => (byDay[a.dia] = byDay[a.dia] || []).push(a));
+  let html = '';
+  for (const d of Object.keys(byDay).sort().reverse()){
+    html += `<div class="group-h">${d === t ? 'Hoje' : esc(weekday(d))} · ${brFull(d)} · ${byDay[d].length}</div>`;
+    html += byDay[d].map(a => { const x = admDerived(a);
+      return `<div class="adm-wrap"><button class="adm-card" data-adm="${a.id}"><div class="bed">${esc(a.leito || '—')}<small>${esc(a.setor || '')}</small></div>
+      <div class="who"><div class="n">${esc(a.nome || 'Sem nome')}</div>${(() => { const v = (s) => s ? esc(s) : '<i class="nd">—</i>'; const id = a.idade || (x.idade != null ? x.idade + ' anos' : ''); const imc = x.im && x.im.imc ? fmt1(x.im.imc) : ''; return `<div class="adm-info"><span><em>Idade</em>${v(id)}</span><span><em>Peso</em>${a.peso ? esc(a.peso) + ' kg' : '<i class="nd">—</i>'}</span><span><em>Altura</em>${a.altura ? esc(a.altura) + ' cm' : '<i class="nd">—</i>'}</span>${imc ? `<span><em>IMC</em>${esc(imc)}</span>` : ''}</div><div class="adm-dx"><em>Diagnóstico</em><span>${v(a.diagnostico)}</span></div><div class="adm-dx"><em>HPP</em><span>${v(a.hpp)}</span></div><div class="adm-dx"><em>Braden</em><span>${v(a.braden)}</span></div><div class="adm-dx${a.alergias && !/^nega/i.test(a.alergias) ? ' alg' : ''}"><em>Alergias</em><span>${v(a.alergias)}</span></div>`; })()}
+      <div class="badges" style="margin-top:6px">${a.doMapa ? '<span class="b">Do mapa</span>' : ''}${x.s != null ? `<span class="b ${x.s >= 3 ? 'risk' : 'ok'}">${esc(nrsTexto(x.s))}</span>` : ''}<span class="b lvl">${x.nivel}º ${NIVEL_NOME[x.nivel]}</span>${a.via && a.via !== 'oral' ? `<span class="b tn">${esc(a.via)}</span>` : ''}${a.alergias && !/^nega/i.test(a.alergias) ? '<span class="b late">Alergia</span>' : ''}${a.ccHora ? `<span class="b">CC ${esc(a.ccHora)}</span>` : ''}${a.dietaLibCons ? `<span class="b ok">${esc(a.dietaLibCons)}${a.dietaLibHora ? ' ' + esc(a.dietaLibHora) : ''}</span>` : ''}${x.pend ? `<span class="b today">Faltam ${x.pend}</span>` : '<span class="b ok">Pronta p/ SBM</span>'}</div></div>
+      <div class="dates"><span class="d">Ev ${br(x.proxEvol)}</span></div></button>
+      <div class="adm-act"><button class="btn sm ghost" data-deladm="${a.id}" type="button">Excluir</button><div class="del-slot"></div></div></div>`; }).join('');
+  }
+  main.innerHTML = `<div class="wrap">${html}</div>`;
+
+  main.querySelectorAll('[data-deladm]').forEach(b => b.onclick = () => {
+    const a = S.adm[b.dataset.deladm]; const slot = b.parentNode.querySelector('.del-slot');
+    slot.innerHTML = `<div class="confirm"><span>Excluir a admissão de ${esc(a.nome || 'leito ' + (a.leito || ''))}?</span><button class="btn sm" type="button">Excluir</button><button class="btn sm ghost" type="button">Cancelar</button></div>`;
+    const [y, n] = slot.querySelectorAll('button');
+    y.onclick = () => { excluirAdm(a); render(); toast('Admissão excluída'); };
+    n.onclick = () => slot.innerHTML = '';
+  });
+}
+// Admission sheet = the paper "folha de admissão": only its fields, in its order.
+const FOLHA = [
+  ['diagnostico','Diagnóstico','t'], ['hpp','HPP','t'],
+  ['peso','P (kg)','n'], ['altura','A (cm)','n'], ['imc','IMC','calc'], ['vet','VET','calc'], ['ptn','PTN','calc'],
+  ['nrs','NRS','calc'], ['nivel','N. de assistência','calc'], ['braden','Braden'],
+  ['perdaPeso','Perda de peso'], ['ufi','UFI'], ['alergias','Alergias / intolerâncias','t'], ['dieta','Dieta','t'],
+  ['aversoes','Aversões','t'], ['preferencias','Preferências','t'],
+  ['ccHora','Centro cirúrgico (horário)'], ['dietaLibHora','Dieta liberada (horário)'], ['dietaLibCons','Dieta liberada (consistência)']
+];
+function folhaValor(a, k){
+  const d = admDerived(a); const p = num(a.peso);
+  switch (k){
+    case 'imc': return d.im.imc ? fmt1(d.im.imc) + (d.im.cls ? ' (' + d.im.cls + ')' : '') : '';
+    case 'vet': return p ? `${Math.round(p * (a.kcalKg || 25))} kcal (${String(a.kcalKg || 25).replace('.', ',')} kcal/kg)` : '';
+    case 'ptn': return p ? `${String(Math.round(p * (a.ptnKg || 1.2) * 10) / 10).replace('.', ',')} g (${String(a.ptnKg || 1.2).replace('.', ',')} g/kg)` : '';
+    case 'nrs': return nrsTexto(d.s);
+    case 'nivel': return d.nivel + 'º';
+    case 'vetSbm': return a.vetManual || d.vet;
+    default: return a[k] || '';
+  }
+}
+function abrirAdm(id){
+  const a = S.adm[id] || Object.values(S.adm).find(x => x.id === id);
+  if (!a){ toast('Admissão não encontrada. Atualize a tela.'); render(); return; }
+  try { openAdm(a); } catch(e){ reportErr(e, 'openAdm'); toast('Erro ao abrir a admissão: ' + (e && e.message || e)); }
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-adm]'); if (b){ e.preventDefault(); abrirAdm(b.dataset.adm); } });
+function reportErr(e, where){
+  try { store.put('debug', { where, msg: String(e && e.message || e), stack: String(e && e.stack || '').slice(0, 1500), ua: navigator.userAgent, t: new Date().toISOString() }); } catch(_){}
+}
+window.addEventListener('error', ev => reportErr(ev.error || ev.message, 'window'));
+window.addEventListener('unhandledrejection', ev => reportErr(ev.reason, 'promise'));
+function openAdm(a){
+  const isNew = !S.adm[a.id];
+  if (!a.hora){ const t = new Date(); a.hora = `${pad(t.getHours())}:${pad(t.getMinutes())}`; }
+  const seg = (grp, val, label, cur) => `<button type="button" data-seg="${grp}" data-v="${val}" aria-pressed="${String(cur) === String(val)}">${label}</button>`;
+  const cp = k => `<span class="sp"></span><button class="cp" data-cp="${k}" type="button">Copiar</button>`;
+  const inp = (k, label, t) => t === 't'
+    ? `<div class="f"><label for="f-${k}">${label}${cp(k)}</label><textarea id="f-${k}" data-k="${k}" rows="2"></textarea></div>`
+    : `<div class="f"><label for="f-${k}">${label}${cp(k)}</label><input id="f-${k}" data-k="${k}" ${t === 'n' ? 'inputmode="decimal"' : ''}></div>`;
+  const out = (k, label) => `<div class="f"><label>${label}${cp(k)}</label><div class="outv" id="o-${k}">—</div></div>`;
+  let body = PHOTO_BOX;
+  body += `<section class="sec">
+    <div class="grid2"><div class="f"><label for="f-nome">Paciente</label><input id="f-nome" data-k="nome"></div><div class="f"><label for="f-leito">Leito</label><input id="f-leito" data-k="leito"></div></div>
+    <div class="grid2"><div class="f"><label for="f-registro">Registro</label><input id="f-registro" data-k="registro" inputmode="numeric"></div><div class="f"><label for="f-idade">Idade</label><input id="f-idade" data-k="idade"></div></div>
+    <div class="grid2"><div class="f"><label for="f-dia">Data</label><input id="f-dia" data-k="dia" type="date"></div><div class="f"><label for="f-hora">Hora</label><input id="f-hora" data-k="hora" type="time"></div></div>
+  </section>`;
+  body += `<section class="sec">${inp('diagnostico','Diagnóstico','t')}${inp('hpp','HPP','t')}</section>`;
+  body += `<section class="sec">
+    <div class="grid2">${inp('peso','P (kg)','n')}${inp('altura','A (cm)','n')}</div>
+    <div class="grid2">${out('imc','IMC')}${inp('perdaPeso','Perda de peso')}</div>
+    <div class="grid2">${out('vet','VET')}${out('ptn','PTN')}</div>
+    <div class="row"><span class="mini">kcal/kg</span><div class="seg">${[20,25,30,35].map(v => seg('kcalKg', v, v, a.kcalKg || 25)).join('')}</div></div>
+    <div class="row"><span class="mini">g/kg</span><div class="seg">${[1,1.2,1.5,2].map(v => seg('ptnKg', v, String(v).replace('.', ','), a.ptnKg || 1.2)).join('')}</div></div>
+    <div class="f"><label>VET e proteína para o SBM${cp('vetSbm')}</label><div class="outv" id="o-vetSbm">—</div></div>
+  </section>`;
+  body += `<section class="sec">
+    <div class="f"><label>NRS${cp('nrs')}</label><div class="score" id="nrs-score"></div></div>
+    <div class="grid2"><div class="f"><label for="f-nrsEstado">Estado nutricional</label><select id="f-nrsEstado" data-num="nrsEstado"><option value="">—</option>${NRS_ESTADO.map(([v, l]) => `<option value="${v}">${v} · ${l}</option>`).join('')}</select></div>
+    <div class="f"><label for="f-nrsGrav">Gravidade da doença</label><select id="f-nrsGrav" data-num="nrsGrav"><option value="">—</option>${NRS_GRAV.map(([v, l]) => `<option value="${v}">${v} · ${l}</option>`).join('')}</select></div></div>
+    <div class="f"><label>N. de assistência${cp('nivel')}</label><div class="seg">${[1,2,3].map(n => seg('nivelManual', n, n + 'º', '')).join('')}</div><span class="hint" id="nivel-why"></span></div>
+    <div class="grid2">${inp('braden','Braden')}${inp('ufi','UFI')}</div>
+  </section>`;
+  body += `<section class="sec">${inp('alergias','Alergias / intolerâncias','t')}${inp('dieta','Dieta','t')}${inp('aversoes','Aversões','t')}${inp('preferencias','Preferências','t')}
+    <span class="hint">Para ditar, use o microfone do teclado.</span></section>`;
+  body += `<section class="sec"><div class="sec-h"><h3>Cirurgia e liberação da dieta</h3></div>
+    <div class="grid2"><div class="f"><label for="f-ccHora">Centro cirúrgico${cp('ccHora')}</label><input id="f-ccHora" data-k="ccHora" type="time"></div>
+    <div class="f"><label for="f-dietaLibHora">Dieta liberada às${cp('dietaLibHora')}</label><input id="f-dietaLibHora" data-k="dietaLibHora" type="time"></div></div>
+    <div class="f"><label for="f-dietaLibCons">Consistência liberada${cp('dietaLibCons')}</label><input id="f-dietaLibCons" data-k="dietaLibCons" placeholder="Ex: líquida"></div>
+    <div class="seg">${['Zero','Líquida','Líquida pastosa','Pastosa','Branda','Livre'].map(c => `<button type="button" data-cons="${c}">${c}</button>`).join('')}</div>
+  </section>`;
+  body += `<section class="sec"><div class="row"><button class="btn primary" id="copy-all" type="button">Copiar ficha completa</button><button class="btn ghost" id="del-adm" type="button">Excluir admissão</button></div><div id="del-confirm"></div></section>`;
+  const el = sheet(a.nome || 'Nova admissão', body);
+  if (isNew) S.adm[a.id] = a;
+  S.openAdmId = a.id;
+  a.fotos = a.fotos || [];
+  const persist = () => { saveAdm(a); syncAdmToMap(a); };
+  const fill = () => el.querySelectorAll('[data-k]').forEach(i => { if (document.activeElement !== i) i.value = a[i.dataset.k] || ''; });
+  const refresh = () => {
+    if (/enteral|sne|sng|gtt|gastrost/i.test(a.dieta || '')) a.via = /parenteral|npt/i.test(a.dieta) ? 'parenteral' : 'enteral';
+    else if (/parenteral|npt/i.test(a.dieta || '')) a.via = 'parenteral';
+    const d = admDerived(a);
+    for (const k of ['imc','vet','ptn','vetSbm']) $('#o-' + k, el).textContent = folhaValor(a, k) || '—';
+    const sc = $('#nrs-score', el); sc.className = 'score' + (d.s == null ? '' : d.s >= 3 ? ' risk' : ' norisk');
+    sc.innerHTML = d.s == null ? '<span>Escolha estado nutricional e gravidade abaixo.</span>' : `<b>${d.s}</b><span>${d.s >= 3 ? 'Com risco' : 'Sem risco'}${d.idade != null && d.idade >= 70 ? ' · +1 idade ≥ 70' : ''}</span>`;
+    el.querySelectorAll('[data-seg="nivelManual"]').forEach(x => x.setAttribute('aria-pressed', +x.dataset.v === d.nivel));
+    $('#nivel-why', el).textContent = a.nivelManual ? 'Escolhido por você. Toque no nível marcado para voltar ao automático.' : `Automático: ${d.sug.why.join(', ')}.`;
+    $('.sheet-h h2', el).textContent = a.nome || 'Nova admissão';
+    $('#ph-list', el).innerHTML = a.fotos.map(f => `<div class="photo-item">${f.thumb ? `<img alt="" src="${f.thumb}">` : '<span></span>'}<span><b>${esc(f.tipo || 'Foto')}</b>${esc(f.resumo || '')}</span></div>`).join('');
+    el.querySelectorAll('[data-cons]').forEach(x => x.setAttribute('aria-pressed', x.dataset.cons === a.dietaLibCons));
+    $('#f-nrsEstado', el).value = a.nrsEstado ?? ''; $('#f-nrsGrav', el).value = a.nrsGrav ?? '';
+  };
+  el.querySelectorAll('[data-k]').forEach(i => i.addEventListener('input', () => { a[i.dataset.k] = i.value; persist(); refresh(); }));
+  el.querySelectorAll('[data-num]').forEach(i => i.addEventListener('change', () => { a[i.dataset.num] = i.value === '' ? null : +i.value; persist(); refresh(); }));
+  el.querySelectorAll('[data-seg]').forEach(b => b.onclick = () => {
+    const g = b.dataset.seg; const v = parseFloat(b.dataset.v);
+    if (g === 'nivelManual') a.nivelManual = a.nivelManual === v ? null : v;
+    else { a[g] = v; a.vetManual = ''; el.querySelectorAll(`[data-seg="${g}"]`).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+    persist(); refresh();
+  });
+  el.querySelectorAll('[data-cp]').forEach(b => b.onclick = () => copyText(folhaValor(a, b.dataset.cp), b));
+  $('#copy-all', el).onclick = e => {
+    const lines = [`${a.nome || ''} · Leito ${a.leito || ''} · Registro ${a.registro || ''} · ${brFull(a.dia)} ${a.hora || ''}`];
+    for (const [k, l] of FOLHA) lines.push(`${l}: ${folhaValor(a, k)}`);
+    copyText(lines.join('\n'), e.currentTarget);
+  };
+  $('#del-adm', el).onclick = () => {
+    $('#del-confirm', el).innerHTML = `<div class="confirm"><span>Excluir esta admissão?</span><button class="btn sm" id="del-yes" type="button">Excluir</button><button class="btn sm ghost" id="del-no" type="button">Cancelar</button></div>`;
+    $('#del-yes', el).onclick = () => { excluirAdm(a); closeSheet(); toast('Admissão excluída'); };
+    $('#del-no', el).onclick = () => $('#del-confirm', el).innerHTML = '';
+  };
+  el.querySelectorAll('[data-cons]').forEach(b => b.onclick = () => { a.dietaLibCons = b.dataset.cons; if (!a.dietaLibHora){ const t = new Date(); a.dietaLibHora = `${pad(t.getHours())}:${pad(t.getMinutes())}`; } fill(); persist(); refresh(); });
+  setupPhoto(el, a, () => { fill(); persist(); refresh(); });
+  fill(); refresh(); persist();
+}
+function admFields(a, list){
+  let h = ''; let row = [];
+  const flush = () => { if (row.length) { h += row.length > 1 ? `<div class="grid2">${row.join('')}</div>` : row[0]; row = []; } };
+  for (const [k, l, t, opts] of list){
+    if (t === 'sel'){ row.push(`<div class="f"><label for="f-${k}">${l}</label><select id="f-${k}" data-k="${k}">${opts.map(o => `<option${a[k] === o ? ' selected' : ''}>${o}</option>`).join('')}</select></div>`); if (row.length === 2) flush(); continue; }
+    const copy = !['nome','leito','setor','dataInternacao','nasc','idade'].includes(k);
+    const html = fieldHTML(k, l, t, a[k] || '', copy);
+    if (t === 't') { flush(); h += html; } else { row.push(html); if (row.length === 2) flush(); }
+  }
+  flush(); return h;
+}
+
+// ---------- photos → fields ----------
+function photoPrompt(a){
+  const conhecido = {}; for (const k of ['nome','registro','leito','idade','peso','altura','diagnostico','hda','hpp','alergias']) if (a[k]) conhecido[k] = a[k];
+  return `Você está ajudando um nutricionista hospitalar a preencher a ficha de admissão nutricional (sistema SBM).
+As imagens são fotos da tela do prontuário eletrônico. Cada uma pode ser de um tipo diferente:
+- "Entrevista de enfermagem": costuma ter peso, altura, comorbidades, alergias, alimentação/apetite, dispositivos (sonda), hábitos.
+- "Escala de Braden": pontuação total e classificação de risco de lesão por pressão.
+- "Diagnóstico médico": CID/diagnóstico principal e secundários.
+- "Admissão médica": queixa, HDA, HPP, medicações, exames, conduta, dieta prescrita.
+- "Outro": exames laboratoriais, prescrição, evolução, etc.
+Regras:
+- Extraia só o que está escrito e for útil para a nutrição. Ignore dados administrativos, sinais vitais isolados, medicações sem relação com a dieta e textos repetidos. Não invente nem deduza valores ausentes. Campo sem informação = "".
+- Peso, altura e comorbidades: prefira a entrevista de enfermagem. HDA e diagnóstico: prefira o texto médico. HPP: junte comorbidades da enfermagem e do médico, sem repetir.
+- HDA resumida em 1 a 3 frases objetivas. HPP como lista separada por vírgulas (siglas usuais: HAS, DM, DLP, DRC, IC, DPOC...).
+- Datas no formato AAAA-MM-DD.
+Dados que já estão na ficha (não precisa repetir, só complemente ou corrija se a foto mostrar claramente outro valor): ${JSON.stringify(conhecido)}
+Responda somente com um objeto JSON:
+{"fotos":[{"imagem":1,"tipo":"Entrevista de enfermagem|Escala de Braden|Diagnóstico médico|Admissão médica|Outro","resumo":"o que foi aproveitado, em até 10 palavras"}],
+"nome":"","registro":"","leito":"","setor":"","dataInternacao":"","nasc":"","idade":"ex: 72 anos","sexo":"Masculino|Feminino|",
+"peso":"kg, só número","altura":"cm, só número","diagnostico":"motivo da internação / diagnóstico, curto","hda":"","hpp":"","alergias":"alergias e intolerâncias, ou 'Nega' se escrito","perdaPeso":"perda de peso referida, ex: 5 kg em 3 meses","aversoes":"alimentos que não come / não gosta","preferencias":"preferências alimentares",
+"dieta":"dieta prescrita","lab":"exames relevantes com valor e data","hgt":"glicemias capilares","braden":"pontuação e classificação, ex: 14 - risco moderado",
+"controles":"controle glicêmico, precauções, restrição hídrica, etc.","via":"oral|zero|enteral|parenteral|oral + enteral|","tn":"sonda/fórmula/volume se houver",
+"cancer":false,"hiv":false}`;
+}
+async function ensureSample(){
+  if (S.sample !== null) return S.sample;
+  try { S.sample = window.claude && window.claude.use ? await window.claude.use('sample') : null; } catch(e){ S.sample = null; }
+  if (S.sample){ try { const lim = await S.sample.limits(); S.sampleImages = !!(lim && lim.images); S.sampleMax = (lim && lim.images && lim.images.maxCount) || 4; } catch(e){ S.sampleImages = false; } }
+  return S.sample;
+}
+// iPhone photos can be HEIC and large: redraw as JPEG (max 2000 px) before sending.
+function toJpeg(file){
+  return new Promise(res => { const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => { const m = 2000, r = Math.min(1, m / Math.max(img.width, img.height)); const c = document.createElement('canvas'); c.width = Math.round(img.width * r); c.height = Math.round(img.height * r); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); c.toBlob(b => res(b || file), 'image/jpeg', .85); };
+    img.onerror = () => { URL.revokeObjectURL(url); res(file); }; img.src = url; });
+}
+function thumbOf(file){
+  return new Promise(res => { const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = () => { const c = document.createElement('canvas'); const s = 96; const r = Math.max(s / img.width, s / img.height); c.width = s; c.height = s; const ctx = c.getContext('2d'); ctx.drawImage(img, (s - img.width * r) / 2, (s - img.height * r) / 2, img.width * r, img.height * r); URL.revokeObjectURL(url); try { res(c.toDataURL('image/jpeg', .6)); } catch(e){ res(''); } };
+    img.onerror = () => res(''); img.src = url; });
+}
+function mergeInto(a, r){
+  let filled = 0;
+  const keys = ['nome','registro','leito','setor','idade','peso','altura','diagnostico','hpp','alergias','dieta','braden','perdaPeso','aversoes','preferencias'];
+  for (const k of keys){
+    let v = r[k]; if (v == null) continue; v = String(v).trim(); if (!v) continue;
+    if (k === 'peso' || k === 'altura') v = v.replace(/[^\d.,]/g, '');
+    if ((k === 'dataInternacao' || k === 'nasc') && !/^\d{4}-\d{2}-\d{2}$/.test(v)) continue;
+    if (k === 'nome' && a.nome) continue;
+    if (!a[k]) { a[k] = v; filled++; }
+    else if (['hpp','diagnostico'].includes(k) && !a[k].toLowerCase().includes(v.toLowerCase().slice(0, 30))) { a[k] += (k === 'hpp' ? ', ' : '\n') + v; filled++; }
+  }
+  if (r.via && (!a.via || a.via === 'oral') && r.via !== 'oral') { a.via = r.via; filled++; }
+  if (r.cancer === true) a.cancer = true; if (r.hiv === true) a.hiv = true;
+  return filled;
+}
+function setupPhoto(el, a, onFill){
+  const pick = $('#ph-pick', el), status = $('#ph-status', el);
+  ensureSample();
+  pick.onclick = async () => {
+    if (!S.sample || !S.sampleImages){ S.sample = null; status.className = 'status'; status.textContent = 'Conectando…'; await ensureSample(); status.textContent = ''; }
+    if (!S.sample || !S.sampleImages){ status.className = 'status err'; status.textContent = 'A leitura de fotos não está disponível nesta tela. Abra o app pelo link no Safari ou no app do Claude, já logado, e permita o acesso quando ele pedir. Os campos continuam editáveis à mão.'; return; }
+    const inp = $('#imgin'); inp.value = '';
+    inp.onchange = async () => {
+      const files = await Promise.all([...inp.files].map(toJpeg)); if (!files.length) return;
+      pick.disabled = true; status.className = 'status';
+      const thumbs = await Promise.all(files.map(thumbOf));
+      let total = 0, ok = 0;
+      for (let i = 0; i < files.length; i += S.sampleMax){
+        const batch = files.slice(i, i + S.sampleMax), bt = thumbs.slice(i, i + S.sampleMax);
+        status.textContent = files.length > S.sampleMax ? `Lendo fotos ${i + 1}–${i + batch.length} de ${files.length}…` : `Lendo ${files.length} foto${files.length > 1 ? 's' : ''}…`;
+        try {
+          const r = await S.sample.json(photoPrompt(a), { images: batch, modelTier: 'default' });
+          if (!r || typeof r !== 'object') throw { code:'invalid_json' };
+          const info = Array.isArray(r.fotos) ? r.fotos : [];
+          bt.forEach((t, j) => { const f = info.find(x => +x.imagem === j + 1) || info[j] || {}; a.fotos.push({ thumb: t, tipo: f.tipo || 'Foto', resumo: f.resumo || '' }); });
+          total += mergeInto(a, r); ok++;
+          onFill();
+        } catch(e){
+          status.className = 'status err';
+          status.textContent = e && e.code === 'not_granted' ? 'Leitura de fotos não autorizada. Preencha à mão.' : e && e.code === 'rate_limited' ? 'Limite de uso atingido agora. Tente de novo em alguns minutos.' : 'Não consegui ler essas fotos. Tente uma foto mais nítida, com a tela inteira enquadrada.';
+          break;
+        }
+      }
+      if (ok){ status.className = 'status'; status.textContent = total ? `${total} campo${total > 1 ? 's' : ''} preenchido${total > 1 ? 's' : ''}. Confira antes de copiar para o SBM.` : 'Nada novo encontrado nessas fotos.'; }
+      pick.disabled = false;
+    };
+    inp.click();
+  };
+}
+
+// ---------- shell ----------
+function renderNav(){
+  for (const t of ['mapa','pend','adm']) $('#tab-' + t).setAttribute('aria-current', S.tab === t ? 'page' : 'false');
+  const day = activeDay(); const c = day ? counts(day.patients, todayISO()) : null;
+  const pill = n => n ? `<span class="pill">${n}</span>` : '';
+  $('#pill-mapa').innerHTML = c && c.late ? `<span class="pill" style="background:var(--late)">${c.late}</span>` : '';
+  $('#pill-pend').innerHTML = pill(c ? c.pend : 0);
+  $('#pill-adm').innerHTML = pill(admVisiveis().filter(a => a.dia === todayISO() && admDerived(a).pend).length);
+}
+function renderMain(){ S.tab === 'adm' ? renderAdmList() : S.tab === 'pend' ? renderPend() : renderMap(); }
+function render(){
+  renderTop(); renderMain(); renderNav();
+  document.documentElement.style.setProperty('--toph', ($('#top').offsetHeight || 0) + 'px');
+}
+document.querySelectorAll('.nav [data-tab]').forEach(b => b.onclick = () => { S.tab = b.dataset.tab; saveUI(); render(); window.scrollTo(0, 0); });
+
+// Maps saved before the diagnosis fix kept "Di: - HPP: - …" as the diagnosis; re-split it.
+function migrateDay(day){
+  for (const p of day.patients){
+    if (p.vazio || !p.di || !/\b(Di|HPP|HDA|Contrl):/.test(p.di) || !window.MapParser) continue;
+    const o = MapParser.parseDiag(p.di);
+    Object.assign(p, o);
+    if (p.edit && p.edit.di === '') delete p.edit.di;
+    const vazio = !o.di && !o.hda && !o.hpp && !p.dieta && !parseInt(p.nrs) && !p.plantao && !p.vet && !p.sno;
+    if (vazio) p.soColuna1 = true;
+  }
+}
+const ADM_DATA_KEYS = ['ccHora','dietaLibHora','dietaLibCons','perdaPeso','ufi','peso','altura','diagnostico','hda','hpp','alergias','dieta','lab','hgt','braden','controles','tn','notas','preferencias','aversoes','restricoes','bloqueios','obsGeral','plantao','aceitacao','sexo','nasc','dataInternacao'];
+const admScore = a => ADM_DATA_KEYS.filter(k => a[k]).length + (a.nrsEstado != null ? 2 : 0) + (a.nrsGrav != null ? 2 : 0) + ((a.fotos || []).length ? 1 : 0);
+// Merge duplicate admissions (same registro or same bed/day) into one, keeping the most complete.
+function dedupeAdm(){
+  const groups = {};
+  for (const a of Object.values(S.adm)){
+    if (!a.nome && !a.registro && !a.doMapa && admScore(a) === 0 && a.dia < todayISO()){ delete S.adm[a.id]; store.put('adm-' + a.id, null); continue; }
+    const key = a.registro ? 'r' + a.registro : a.mapId ? 'm' + a.mapId : 'i' + a.id;
+    (groups[key] = groups[key] || []).push(a);
+  }
+  for (const g of Object.values(groups)){
+    if (g.length < 2) continue;
+    g.sort((x, y) => admScore(y) - admScore(x) || (y.updatedAt || 0) - (x.updatedAt || 0));
+    const keep = g[0];
+    for (const o of g.slice(1)){
+      for (const k of Object.keys(o)) if ((keep[k] == null || keep[k] === '') && o[k] != null && o[k] !== '') keep[k] = o[k];
+      delete S.adm[o.id]; store.put('adm-' + o.id, null);
+    }
+    saveAdm(keep);
+  }
+}
+function hydrate(all){
+  S.days = {}; S.adm = {}; S.notes = {}; S.settings = { hidden: [], outros: {} };
+  for (const [k, v] of Object.entries(all || {})){
+    if (!v) continue;
+    if (k.startsWith('map-') && v.patients){ S.days[v.date] = v; migrateDay(v); }
+    else if (k.startsWith('adm-')) S.adm[v.id] = v;
+    else if (k === 'notes') S.notes = v.map || {};
+    else if (k === 'settings') S.settings = { hidden: v.hidden || [], outros: v.outros || {} };
+  }
+  S.cur = S.days[todayISO()] ? todayISO() : (S.viewingOld && S.days[S.viewingOld] ? S.viewingOld : null);
+}
+// At midnight the current map moves to the history and the upload screen comes back.
+let lastDay = todayISO();
+setInterval(() => { if (todayISO() !== lastDay){ lastDay = todayISO(); S.viewingOld = null; S.cur = S.days[lastDay] ? lastDay : null; if (!$('#sheet-root').firstElementChild) render(); } }, 60000);
+// Save everything right away when the app is closed or sent to the background.
+function flushAll(){ for (const k of Object.keys(store.q)){ clearTimeout(store['t' + k]); store.flush(k); } }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushAll(); });
+window.addEventListener('pagehide', flushAll);
+document.addEventListener('focusout', () => setTimeout(flushAll, 50));
+const boot = all => { hydrate(all); dedupeAdm(); const d = curDay(); if (d && syncAdmissions(d)) saveDay(); render(); };
+window.__auth.then(() => { boot(store.lsAll());
+store.init().then(() => store.loadAll()).then(all => { if (!$('#sheet-root').firstElementChild) boot(all); }); });
+})();
+
+</script>
+
+</body></html>
